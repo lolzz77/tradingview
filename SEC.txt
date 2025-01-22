@@ -1,0 +1,395 @@
+//@version=6
+indicator(title="Sharp Entry Concept", shorttitle="SEC", format=format.price, precision=2, timeframe="", timeframe_gaps=true, overlay = true, scale = scale.none)
+
+// Note:
+// What im doing next is the alert
+// I want to alert to, once intersected, do a counutdown 30 mins. 
+// If 30 mins has passed, reset the intersect flag
+// Else, keep the flag to true,
+// then, wait until candle bar close, until it has 1 min left
+// at this time, if the intersect flag still true, sound the alert
+// Still WIP, and im a bit lazy to do it at the moment
+
+// variable for alert
+var to_alert = false
+// Variable to decide to run the script or not
+var global_enable = true
+
+// Variable for alert countdown
+var float RSI_Timenow = 0
+var float KDJ_Timenow = 0
+// In milliseconds, Coutndown duration (30 minutes)
+// Because i will use "timenow" to do calculation
+// And "timenow" is in Epoch (aka UNIX time) time, and Epoch is in milliseconds
+countdownDuration = 30 * 60 * 1000
+// In milliseconds, Alert me 1 minute before
+alert_One_Minute_Before = 60 * 1000
+
+// Only available on M15 timeframe
+if (timeframe.period == "15")
+    global_enable := true
+else 
+    global_enable := false
+
+// -----------------------
+// Common Function
+// -----------------------
+
+// Guide: Put 0 for _min, 100 for _max. We scale them all to 0 to 100
+// 0 to 100 is RSI scale. We follow RSI scale.
+
+// ————— When the scale of the signal to rescale is unknown (unbounded).
+// Min/Max of signal to rescale is determined by its historical low/high.
+normalize(_src, _min, _max) =>
+    // Normalizes series with unknown min/max using historical min/max.
+    // _src      : series to rescale.
+    // _min, _min: min/max values of rescaled series.
+    var _historicMin =  10e10
+    var _historicMax = -10e10
+    _historicMin := math.min(nz(_src, _historicMin), _historicMin)
+    _historicMax := math.max(nz(_src, _historicMax), _historicMax)
+    _min + (_max - _min) * (_src - _historicMin) / math.max(_historicMax - _historicMin, 10e-10)
+
+// MACD is too short in the chart
+// This one will add the length
+// Have to multiple with odd numbers
+// Else, the negative value will become positive
+add_length(_src) =>
+     _src *9
+
+// -----------------------
+// Relative Strength Index
+// RSI is scale from 0 to 100, thus, no need normalize
+// -----------------------
+rsiLengthInput = input.int(14, minval=1, title="RSI Length", group="RSI Settings")
+rsiSourceInput = input.source(close, "Source", group="RSI Settings")
+calculateDivergence = input.bool(false, title="Calculate Divergence", group="RSI Settings", display = display.data_window, tooltip = "Calculating divergences is needed in order for divergence alerts to fire.")
+
+change = ta.change(rsiSourceInput)
+up = ta.rma(math.max(change, 0), rsiLengthInput)
+down = ta.rma(-math.min(change, 0), rsiLengthInput)
+rsi = down == 0 ? 100 : up == 0 ? 0 : 100 - (100 / (1 + up / down))
+
+rsiPlot = plot(global_enable ? rsi : na, "RSI", color=#7E57C2)
+rsiUpperBand = hline(70, "RSI Upper Band", color=color.new(#787B86, 100))
+midline = hline(50, "RSI Middle Band", color=color.new(#787B86, 100))
+rsiLowerBand = hline(30, "RSI Lower Band", color=color.new(#787B86,100))
+fill(rsiUpperBand, rsiLowerBand, color=color.rgb(126, 87, 194, 100), title="RSI Background Fill")
+midLinePlot = plot(global_enable ? 50 : na, color = na, editable = false, display = display.none)
+fill(rsiPlot, midLinePlot, 100, 70, top_color = color.new(color.green, 0), bottom_color = color.new(color.green, 100),  title = "Overbought Gradient Fill")
+fill(rsiPlot, midLinePlot, 30,  0,  top_color = color.new(color.red, 100), bottom_color = color.new(color.red, 0),      title = "Oversold Gradient Fill")
+
+// Smoothing MA inputs
+GRP = "Moving Average"
+TT_BB = "Only applies when 'SMA + Bollinger Bands' is selected. Determines the distance between the SMA and the bands."
+maTypeInput = input.string("SMA", "Type", options = ["None", "SMA", "SMA + Bollinger Bands", "EMA", "SMMA (RMA)", "WMA", "VWMA"], group = GRP, display = display.data_window)
+maLengthInput = input.int(14, "Length", group = GRP, display = display.data_window)
+bbMultInput = input.float(2.0, "BB StdDev", minval = 0.001, maxval = 50, step = 0.5, tooltip = TT_BB, group = GRP, display = display.data_window)
+var enableMA = maTypeInput != "None"
+var isBB = maTypeInput == "SMA + Bollinger Bands"
+
+// Smoothing MA Calculation
+ma(source, length, MAtype) =>
+	switch MAtype
+		"SMA"                   => ta.sma(source, length)
+		"SMA + Bollinger Bands" => ta.sma(source, length)
+		"EMA"                   => ta.ema(source, length)
+		"SMMA (RMA)"            => ta.rma(source, length)
+		"WMA"                   => ta.wma(source, length)
+		"VWMA"                  => ta.vwma(source, length)
+
+// Smoothing MA plots
+smoothingMA = enableMA ? ma(rsi, maLengthInput, maTypeInput) : na
+smoothingStDev = isBB ? ta.stdev(rsi, maLengthInput) * bbMultInput : na
+plot(global_enable ? smoothingMA : na, "RSI-based MA", color=color.yellow, display = enableMA ? display.all : display.none)
+bbUpperBand = plot(global_enable ? smoothingMA + smoothingStDev : na, title = "Upper Bollinger Band", color=color.green, display = isBB ? display.all : display.none)
+bbLowerBand = plot(global_enable ? smoothingMA - smoothingStDev : na, title = "Lower Bollinger Band", color=color.green, display = isBB ? display.all : display.none)
+fill(bbUpperBand, bbLowerBand, color= isBB ? color.new(color.green, 90) : na, title="Bollinger Bands Background Fill", display = isBB ? display.all : display.none)
+
+// Divergence
+lookbackRight = 5
+lookbackLeft = 5
+rangeUpper = 60
+rangeLower = 5
+bearColor = color.red
+bullColor = color.green
+textColor = color.white
+noneColor = color.new(color.white, 100)
+
+_inRange(bool cond) =>
+    bars = ta.barssince(cond)
+    rangeLower <= bars and bars <= rangeUpper
+
+plFound = false
+phFound = false
+
+bullCond = false
+bearCond = false
+
+rsiLBR = rsi[lookbackRight]
+
+if calculateDivergence
+    //------------------------------------------------------------------------------
+    // Regular Bullish
+    // rsi: Higher Low
+    plFound := not na(ta.pivotlow(rsi, lookbackLeft, lookbackRight))    
+    rsiHL = rsiLBR > ta.valuewhen(plFound, rsiLBR, 1) and _inRange(plFound[1])
+    // Price: Lower Low
+    lowLBR = low[lookbackRight]
+    priceLL = lowLBR < ta.valuewhen(plFound, lowLBR, 1)
+    bullCond := priceLL and rsiHL and plFound
+
+    //------------------------------------------------------------------------------
+    // Regular Bearish
+    // rsi: Lower High
+    phFound := not na(ta.pivothigh(rsi, lookbackLeft, lookbackRight))
+    rsiLH = rsiLBR < ta.valuewhen(phFound, rsiLBR, 1) and _inRange(phFound[1])
+    // Price: Higher High
+    highLBR = high[lookbackRight]
+    priceHH = highLBR > ta.valuewhen(phFound, highLBR, 1)
+    bearCond := priceHH and rsiLH and phFound
+
+
+plot(
+     global_enable ? (plFound ? rsiLBR : na) : na,
+     offset=-lookbackRight,
+     title="Regular Bullish",
+     linewidth=2,
+     color=(bullCond ? bullColor : noneColor),
+     display = display.pane
+     )
+
+plotshape(
+     global_enable ? (bullCond ? rsiLBR : na) : na,
+     offset=-lookbackRight,
+     title="Regular Bullish Label",
+     text=" Bull ",
+     style=shape.labelup,
+     location=location.absolute,
+     color=bullColor,
+     textcolor=textColor
+     )
+
+plot(
+     global_enable ? (phFound ? rsiLBR : na) : na,
+     offset=-lookbackRight,
+     title="Regular Bearish",
+     linewidth=2,
+     color=(bearCond ? bearColor : noneColor),
+     display = display.pane
+     )
+
+plotshape(
+     global_enable ? (bearCond ? rsiLBR : na) : na,
+     offset=-lookbackRight,
+     title="Regular Bearish Label",
+     text=" Bear ",
+     style=shape.labeldown,
+     location=location.absolute,
+     color=bearColor,
+     textcolor=textColor
+     )
+
+alertcondition(bullCond, title='Regular Bullish Divergence', message="Found a new Regular Bullish Divergence, `Pivot Lookback Right` number of bars to the left of the current bar.")
+alertcondition(bearCond, title='Regular Bearish Divergence', message='Found a new Regular Bearish Divergence, `Pivot Lookback Right` number of bars to the left of the current bar.')
+
+
+// Draw circle on intersection line
+// Explanation is at KDJ there.
+// The intersection drawing at KDJ there.
+isIntersecting_RSI(rsi_prev, rsi_cur, sma_prev, sma_cur) =>
+    cross_pk_pd = (rsi_prev - sma_prev) * (rsi_cur - sma_cur) < 0
+    cross_pk_pd
+isIntersectingLine = isIntersecting_RSI(rsi[1], rsi, smoothingMA[1], smoothingMA)
+plotshape(series= global_enable ? (isIntersectingLine ? rsi : na) : na, style=shape.circle, location=location.absolute, size=size.small, color=color.purple, title="RSI Intersection Outer Circle")
+
+// Update countdown
+if not na(RSI_Timenow)
+    RSI_Timenow_temp = RSI_Timenow
+    RSI_Timenow := timenow - RSI_Timenow_temp
+    // If time elapsed countdown limit, reset to null
+    if ( (timenow - RSI_Timenow) > countdownDuration)
+        RSI_Timenow := na
+
+// Set countdown
+if isIntersectingLine
+    if na(RSI_Timenow)
+        RSI_Timenow := timenow
+
+
+// -----------------------
+// KDJ
+// We cant normalize this also
+// This has negative value
+// I tried compared normalized & un-normalized, it's different
+// -----------------------
+
+ilong = input(9, title="period")
+isig = input(3, title="signal")
+
+bcwsma(s,l,m) => 
+    _s = s
+    _l = l
+    _m = m
+    var _bcwsma = 0.0
+    _bcwsma := (_m*_s+(_l-_m)*nz(_bcwsma[1]))/_l
+    _bcwsma
+
+c = close
+h = ta.highest(high, ilong)
+l = ta.lowest(low,ilong)
+RSV = 100*((c-l)/(h-l))
+pK = bcwsma(RSV, isig, 1)
+pD = bcwsma(pK, isig, 1)
+pJ = 3 * pK-2 * pD
+
+plot(global_enable ? pK : na, color = color.rgb(0, 217, 255))
+plot(global_enable ? pD : na, color = color.rgb(0, 217, 255))
+plot(global_enable ? pJ : na, color = color.rgb(0, 217, 255))
+bgcolor(pJ>pD? color.new(color.green, transp = 100) : color.new(color.red, transp=100))
+h0 = hline(80, color = color.new(color.black, 100))
+h1 = hline(20, color = color.new(color.black, 100))
+
+// Draw circle on intersection
+// Here is how it works
+// Pinescript only do calculation on each candle.
+// An intersection DOESNT MEAN it will be drawn on the candle.
+// The plot was using line, if 2 lines on prev candle is 5, 10 respectively.
+// Then on next cnadle, the line points are 10, 5 respectively.
+// Then when plotting lines, they are intersected.
+// Got it?
+// Hence, we only can do comparison, cannot do calculation to find intersection.
+// And when plotting, the circle will be drawn on next candle, not on the intersection line.
+// Hence, when you see a circle, look the line on the prev candle, they were intersected.
+isIntersecting_KDJ(pK_prev, pK_curr, pD_prev, pD_curr, pJ_prev, pJ_curr) =>
+    cross_pk_pd = (pK_prev - pD_prev) * (pK_curr - pD_curr) < 0
+    cross_pd_pj = (pD_prev - pJ_prev) * (pD_curr - pJ_curr) < 0
+    cross_pk_pj = (pK_prev - pJ_prev) * (pK_curr - pJ_curr) < 0
+    cross_pk_pd and cross_pd_pj and cross_pk_pj
+isIntersectingLine_KDJ = isIntersecting_KDJ(pK[1], pK, pD[1], pD, pJ[1], pJ)
+plotshape(series= global_enable ? (isIntersectingLine_KDJ ? pD : na) : na, style=shape.circle, location=location.absolute, size=size.small, color=color.blue, title="KDJ Intersection")
+
+
+// Update countdown
+if not na(KDJ_Timenow)
+    KDJ_Timenow_temp = KDJ_Timenow
+    KDJ_Timenow := timenow - KDJ_Timenow_temp
+    // If time elapsed countdown limit, reset to null
+    if ( (timenow - KDJ_Timenow) > countdownDuration)
+        KDJ_Timenow := na
+
+// Set countdown
+if isIntersectingLine_KDJ
+    if na(KDJ_Timenow)
+        KDJ_Timenow := timenow
+
+
+
+// -----------------------
+// MACD
+// Note: For MACD, we cannot normalize
+// Because `plot` will always plot starts from 0
+// MACD has negative value, i tried to make it normalize so that treat "50" as "0"
+// But becauase of `plot` nature, i cant.
+// Thus, no choice, you have to separate this MACD out from this script
+// Unless you dont mind keep everything on the main chart
+// -----------------------
+
+// Getting inputs
+fast_length = input(title = "Fast Length", defval = 12)
+slow_length = input(title = "Slow Length", defval = 26)
+src = input(title = "Source", defval = close)
+signal_length = input.int(title = "Signal Smoothing",  minval = 1, maxval = 50, defval = 9, display = display.data_window)
+sma_source = input.string(title = "Oscillator MA Type",  defval = "EMA", options = ["SMA", "EMA"], display = display.data_window)
+sma_signal = input.string(title = "Signal Line MA Type", defval = "EMA", options = ["SMA", "EMA"], display = display.data_window)
+// Calculating
+fast_ma = sma_source == "SMA" ? ta.sma(src, fast_length) : ta.ema(src, fast_length)
+slow_ma = sma_source == "SMA" ? ta.sma(src, slow_length) : ta.ema(src, slow_length)
+macd = fast_ma - slow_ma
+signal = sma_signal == "SMA" ? ta.sma(macd, signal_length) : ta.ema(macd, signal_length)
+hist = macd - signal
+
+macd_lengthed = add_length(macd)
+signal_lengthed = add_length(signal)
+hist_lengthed = add_length(hist)
+
+alertcondition(hist[1] >= 0 and hist < 0, title = 'Rising to falling', message = 'The MACD histogram switched from a rising to falling state')
+alertcondition(hist[1] <= 0 and hist > 0, title = 'Falling to rising', message = 'The MACD histogram switched from a falling to rising state')
+
+hline(0, "Zero Line", color = color.new(#787B86, 50))
+plot(global_enable ? hist_lengthed : na, title = "Histogram", style = plot.style_columns, color = (hist >= 0 ? (hist[1] < hist ? #26A69A : #B2DFDB) : (hist[1] < hist ? #FFCDD2 : #FF5252)))
+plot(global_enable ? macd_lengthed : na,   title = "MACD",   color = color.rgb(55, 255, 0))
+plot(global_enable ? signal_lengthed : na, title = "Signal", color = color.rgb(55, 255, 0))
+
+
+// Draw circle, when histogram is within the area of the 2 lines
+isInsideHistogram(hist, macd, signal) =>
+    var float area_top = 0
+    var float area_bottom = 0
+    var bool is_within_1 = false
+    var bool is_within_2 = false
+
+    if (macd > signal)
+        area_top := macd
+        area_bottom := signal
+    else
+        area_top := signal
+        area_bottom := macd
+
+    if (hist > 0)
+        is_within_1 := area_top < hist and area_top > 0
+        is_within_2 := area_bottom < hist and area_bottom > 0
+    else
+        is_within_1 := area_top > hist and area_top < 0
+        is_within_2 := area_bottom > hist and area_bottom < 0
+
+    is_within_1 or is_within_2
+
+in_histogram = isInsideHistogram(hist, macd, signal)
+
+// If is inside histogram, then dont print
+// else, print a circle.
+// This is so that when i look at indicator, i want all 3 circles marked up then I know i need to get into the trade
+// Instead of i look got 2 circles, and make sure histogram no circle then i get into trade
+// doing like this is like make sure 2/3 circles present only get in trade
+// instead of 3/3 circles present and get in trade
+plotshape(series= global_enable ? (not in_histogram ? 0 : na) : na, style=shape.circle, location=location.absolute, size=size.tiny, color=color.yellow, title="Inside Histogram")
+
+// -----
+// Alert
+// -----
+
+// You can use logging to verify, the time will not get reset everytime this script is executed.
+// Btw, this script is executed on every ticks, that is, once price changed, script will be executed.
+log.info("test " + str.tostring(timenow - RSI_Timenow))
+
+
+RSI_Timenow_Is_Within_Countdown = false
+KDJ_Timenow_Is_Within_Countdown = false
+Countdown_To_Bar_Close_Is_Within_Countdown = false
+if not na(RSI_Timenow)
+    RSI_Timenow_Is_Within_Countdown := ((timenow - RSI_Timenow) > countdownDuration) ? true : false
+if not na(KDJ_Timenow)
+    KDJ_Timenow_Is_Within_Countdown := ((timenow - KDJ_Timenow) > countdownDuration) ? true : false
+
+Countdown_To_Bar_Close_Is_Within_Countdown := ((time_close - timenow) < alert_One_Minute_Before) ? true : false
+
+// Condition to alert
+// 1. RSI intersect
+// 2. KDJ intersect
+// 3. Lines are not in histogram
+// 4. RSI & KDJ intersact elapsed timing shall not exceed countdown limit
+// 5. Time to candle close is less than 1 minute
+if ( (not in_histogram) and isIntersectingLine_KDJ and isIntersectingLine and RSI_Timenow_Is_Within_Countdown and KDJ_Timenow_Is_Within_Countdown and Countdown_To_Bar_Close_Is_Within_Countdown)
+    to_alert := true
+    // log.info("RSI = " + str.tostring(timenow - RSI_Timenow))
+    // log.info("KDJ = " + str.tostring(timenow - KDJ_Timenow))
+    // log.info("Bar = " + str.tostring(time_close - timenow))
+
+
+alertcondition( (global_enable and to_alert), title="SEC 1min", message="SEC 1min")
+
+// Reset it to false
+if (global_enable and to_alert)
+    to_alert := false
+
