@@ -1,0 +1,2 @@
+# tradingview
+list of pinescripts
