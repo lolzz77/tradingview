@@ -1,0 +1,61 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+//@author=Nikola Lazic
+//@version=6
+
+indicator('Note', shorttitle = 'Note', overlay = true)
+
+// Sentence input
+sentence01 = input.text_area('Mon - \nTue  - \nWed - \nThu  - \nFri    - ', title = 'Sentence 1', group = 'Sentences')
+
+// Sticky Note Settings Input
+tl1 = input.string('bottom', title = 'Note Position', options = ['top', 'middle', 'bottom'], group = 'Sticky Note Settings', inline = '1')
+tl2 = input.string('right', title = '', options = ['left', 'center', 'right'], group = 'Sticky Note Settings', inline = '1')
+note_color = input.color(color(color.rgb(0, 145, 255, 50)), title = 'Note Color', group = 'Sticky Note Settings')
+
+// Font Input
+font_size = input.string('Auto', title = 'Font Size', options = ['Auto', 'Huge', 'Large', 'Normal', 'Small', 'Tiny'], group = 'Font Settings')
+font_type = input.string('Default', title = 'Font Type', options = ['Default', 'Monospace'], group = 'Font Settings')
+font_color = input.color(#fbfbfb, title = 'Font Color', group = 'Font Settings')
+
+// Selected Font
+selected_font = font_type == 'Default' ? font.family_default : font.family_monospace
+
+//Font Size
+selected_size = font_size == 'Auto' ? size.auto : font_size == 'Huge' ? size.huge : font_size == 'Large' ? size.large : font_size == 'Normal' ? size.normal : font_size == 'Small' ? size.small : font_size == 'Tiny' ? size.tiny : na
+
+// Table
+var table t1 = table.new(tl1 + '_' + tl2, 1, 10)
+
+// Writing rows in the table.
+// If sentence is empty, then row will be excluded from the table
+if barstate.islast
+    if not na(sentence01) and sentence01 != ''
+        table.cell(t1, 0, 0, text = sentence01, bgcolor = note_color, text_color = font_color, text_halign = text.align_left, text_size = selected_size, text_font_family = selected_font)
+
+
+
+// ----------
+// Alert
+// You have to go to Alert button on tradingview
+// You will see you can choose your Alert name
+// ----------
+
+// Define the timezone offset in hours
+gmtOffset = 8
+
+// Input for date and time
+alertDateTime = input.time(timestamp("2024-12-25 10:30"), title="Alert Date and Time (GMT+8)")
+
+// Adjust for GMT +8
+adjustedDateTime = alertDateTime - gmtOffset * 3600 * 1000
+
+// Define 1 hour end time
+oneHourInMilliseconds = 3600 * 1000
+endTime = adjustedDateTime + oneHourInMilliseconds
+
+// Plotting a signal on the chart for visualization
+plotshape(adjustedDateTime, style=shape.labeldown, color = color.aqua, text = "News Alert Start", textcolor = color.black, size = size.small)
+plotshape(endTime, style=shape.labeldown, color = color.purple, text = "News Alert End", textcolor = color.black, size = size.small)
+
+// Create the alert condition
+alertcondition(timenow >= adjustedDateTime and timenow < endTime, title="Time and Date Alert (Start)", message="It's time! This is your alert for the specified start time in GMT+8.")
