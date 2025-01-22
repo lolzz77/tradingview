@@ -1,0 +1,242 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © ivanroyloewen
+
+//@version=6
+indicator('News Alert', overlay = true, scale = scale.none)
+
+// ( inputs )
+var currentYear = year(timenow)
+var currentMonth = month(timenow)
+var currentDay = dayofmonth(timenow)
+var currentHour = hour(timenow)
+var currentMinute = minute(timenow)
+
+var warning_Location = input.string(defval = 'Bottom Right', title = 'Warning Location', options = ['Bottom Right', 'Middle Right', 'Top Right', 'Bottom Center', 'Middle Center', 'Top Center', 'Bottom Left', 'Middle Left', 'Top Left'])
+
+// the inputs for the 1st news alert
+var news_Time_1 = 'News Time'
+// NOTE!! : I used "confirm = true", hence, you need to click on the chart to set value.
+// Click 10 times, because I have 10 confirms
+var news_Date_1 = input.time(defval = 0, title = 'Date', group = news_Time_1, inline = news_Time_1, confirm = true)
+var show_News_1 = input.bool(defval = false, title = 'Show News 1', group = news_Time_1, inline = news_Time_1)
+
+// the inputs for the 2nd news alert
+var news_Time_2 = 'News Time'
+var news_Date_2 = input.time(defval = 0, title = 'Date', group = news_Time_2, inline = news_Time_2, confirm = true)
+var show_News_2 = input.bool(defval = false, title = 'Show News 2', group = news_Time_2, inline = news_Time_2)
+
+// the inputs for the 3rd news alert
+var news_Time_3 = 'News Time'
+var news_Date_3 = input.time(defval = 0, title = 'Date', group = news_Time_3, inline = news_Time_3, confirm = true)
+var show_News_3 = input.bool(defval = false, title = 'Show News 3', group = news_Time_3, inline = news_Time_3)
+
+// the inputs for the 4th news alert
+var news_Time_4 = 'News Time'
+var news_Date_4 = input.time(defval = 0, title = 'Date', group = news_Time_4, inline = news_Time_4, confirm = true)
+var show_News_4 = input.bool(defval = false, title = 'Show News 4', group = news_Time_4, inline = news_Time_4)
+
+// the inputs for the 5th news alert
+var news_Time_5 = 'News Time'
+var news_Date_5 = input.time(defval = 0, title = 'Date', group = news_Time_5, inline = news_Time_5, confirm = true)
+var show_News_5 = input.bool(defval = false, title = 'Show News 5', group = news_Time_5, inline = news_Time_5)
+
+// the inputs for the 6th news alert
+var news_Time_6 = 'News Time'
+var news_Date_6 = input.time(defval = 0, title = 'Date', group = news_Time_6, inline = news_Time_6, confirm = true)
+var show_News_6 = input.bool(defval = false, title = 'Show News 6', group = news_Time_6, inline = news_Time_6)
+
+// the inputs for the 7th news alert
+var news_Time_7 = 'News Time'
+var news_Date_7 = input.time(defval = 0, title = 'Date', group = news_Time_7, inline = news_Time_7, confirm = true)
+var show_News_7 = input.bool(defval = false, title = 'Show News 7', group = news_Time_7, inline = news_Time_7)
+
+// the inputs for the 8th news alert
+var news_Time_8 = 'News Time'
+var news_Date_8 = input.time(defval = 0, title = 'Date', group = news_Time_8, inline = news_Time_8, confirm = true)
+var show_News_8 = input.bool(defval = false, title = 'Show News 8', group = news_Time_8, inline = news_Time_8)
+
+// the inputs for the 9th news alert
+var news_Time_9 = 'News Time'
+var news_Date_9 = input.time(defval = 0, title = 'Date', group = news_Time_9, inline = news_Time_9, confirm = true)
+var show_News_9 = input.bool(defval = false, title = 'Show News 9', group = news_Time_9, inline = news_Time_9)
+
+// the inputs for the 10th news alert
+var news_Time_10 = 'News Time'
+var news_Date_10 = input.time(defval = 0, title = 'Date', group = news_Time_10, inline = news_Time_10, confirm = true)
+var show_News_10 = input.bool(defval = false, title = 'Show News 10', group = news_Time_10, inline = news_Time_10)
+
+
+// the inputs for the news line settings
+var line_Settings = 'News Line Settings'
+var line_Color = input.color(defval = color.rgb(255, 255, 255), title = 'Color', inline = line_Settings, group = line_Settings)
+var line_Style = input.string(defval = 'Dotted', title = 'Style', options = ['Dotted', 'Dashed', 'Solid'], group = line_Settings, inline = line_Settings)
+var line_Width = input.int(defval = 1, title = 'Width', minval = 1, maxval = 10, inline = line_Settings, group = line_Settings)
+
+// the inputs for the warning area surrounding the news release
+var box_Settings = 'News Area Settings'
+var box_Background_Color = input.color(defval = #ff000040, title = 'Background Color', inline = box_Settings, group = box_Settings)
+var box_Show = input.bool(defval = true, title = 'Show Area', inline = box_Settings, group = box_Settings)
+
+// set the line style using the string input
+var line_Style_Selected = line.style_dotted
+
+if line_Style == 'Dotted'
+    line_Style_Selected := line.style_dotted
+    line_Style_Selected
+else if line_Style == 'Dashed'
+    line_Style_Selected := line.style_dashed
+    line_Style_Selected
+else if line_Style == 'Solid'
+    line_Style_Selected := line.style_solid
+    line_Style_Selected
+
+// set the warning table location using string input
+var warning_Location_Selected = position.bottom_right
+
+if warning_Location == 'Bottom Right'
+    warning_Location_Selected := position.bottom_right
+    warning_Location_Selected
+else if warning_Location == 'Middle Right'
+    warning_Location_Selected := position.middle_right
+    warning_Location_Selected
+else if warning_Location == 'Top Right'
+    warning_Location_Selected := position.top_right
+    warning_Location_Selected
+else if warning_Location == 'Bottom Center'
+    warning_Location_Selected := position.bottom_center
+    warning_Location_Selected
+else if warning_Location == 'Middle Center'
+    warning_Location_Selected := position.middle_center
+    warning_Location_Selected
+else if warning_Location == 'Top Center'
+    warning_Location_Selected := position.top_center
+    warning_Location_Selected
+else if warning_Location == 'Bottom Left'
+    warning_Location_Selected := position.bottom_left
+    warning_Location_Selected
+else if warning_Location == 'Middle Left'
+    warning_Location_Selected := position.middle_left
+    warning_Location_Selected
+else if warning_Location == 'Top Left'
+    warning_Location_Selected := position.top_left
+    warning_Location_Selected
+
+
+// ( News Table )
+
+// create a table that will be used to display the news warning before, after and during the news release
+news_Table = table.new(position = warning_Location_Selected, columns = 1, rows = 10, bgcolor = color.red, frame_color = color.white, frame_width = 2)
+
+var table_row = 0
+var currentUnixTime = int(timenow / 1000)
+var setClear = true
+
+boolVars = array.new_bool(10, false)
+if show_News_1
+    array.set(boolVars, 0, true)
+    setClear := false
+if show_News_2
+    array.set(boolVars, 1, true)
+    setClear := false
+if show_News_3
+    array.set(boolVars, 2, true)
+    setClear := false
+if show_News_4
+    array.set(boolVars, 3, true)
+    setClear := false
+if show_News_5
+    array.set(boolVars, 4, true)
+    setClear := false
+if show_News_6
+    array.set(boolVars, 5, true)
+    setClear := false
+if show_News_7
+    array.set(boolVars, 6, true)
+    setClear := false
+if show_News_8
+    array.set(boolVars, 7, true)
+    setClear := false
+if show_News_9
+    array.set(boolVars, 8, true)
+    setClear := false
+if show_News_10
+    array.set(boolVars, 9, true)
+    setClear := false
+
+if setClear
+    // Set the table to show "Clear"
+    table_row := 0
+    table.set_bgcolor(news_Table, bgcolor = color.green)
+    table.cell(table_id = news_Table, column = 0, row = 0, text = ' Clear ')
+    table.cell_set_text_size(news_Table, 0, 0, size.normal)
+    table.cell_set_text_color(news_Table, 0, 0, color.white)
+
+// Then, check for news, clear "clear" if have, and show remaining time
+for i = 0 to array.size(boolVars) - 1
+    // I dont know how to declare a vairable and set it to null
+    // Thus i just set it to the first variable
+    var news_Date = news_Date_1
+
+    if array.get(boolVars, i)
+        if i == 0
+            news_Date := news_Date_1
+        if i == 1
+            news_Date := news_Date_2
+        if i == 2
+            news_Date := news_Date_3
+        if i == 3
+            news_Date := news_Date_4
+        if i == 4
+            news_Date := news_Date_5
+        if i == 5
+            news_Date := news_Date_6
+        if i == 6
+            news_Date := news_Date_7
+        if i == 7
+            news_Date := news_Date_8
+        if i == 8
+            news_Date := news_Date_9
+        if i == 9
+            news_Date := news_Date_10
+
+        table_row := i
+        news_Year = year(news_Date)
+        news_Month = month(news_Date)
+        news_Day = dayofmonth(news_Date)
+        news_Hour = hour(news_Date)
+        news_Minute = minute(news_Date)
+        news_Time_Stamp_Release = timestamp(news_Year, news_Month, news_Day, news_Hour, news_Minute, 00)
+
+        target_time_in_unix = int(news_Time_Stamp_Release / 1000)
+        remainingTime = target_time_in_unix - currentUnixTime
+
+        hourValue = math.abs(int(remainingTime / 3600) )
+        minuteValue = math.abs(int((remainingTime % 3600) / 60))
+
+        var formattedTime = ""
+        if (hourValue > 24)
+            days = int(hourValue / 24)
+            remainingHours = int(hourValue % 24)
+            formattedTime := (remainingTime < 0) ? 
+                             "-" + str.format("{0}d {1,number,00}:{2,number,00}", days, remainingHours, minuteValue) : 
+                                   str.format("{0}d {1,number,00}:{2,number,00}", days, remainingHours, minuteValue)
+        else
+            formattedTime := (remainingTime < 0) ? 
+                             "-" + str.format("{0,number,00}:{1,number,00}", hourValue, minuteValue) : 
+                                   str.format("{0,number,00}:{1,number,00}", hourValue, minuteValue)
+
+        // I dont know how to initialize as a null variable
+        // Hence, imma just assign some colors
+        var background_color = color.red
+        // If news passed 1 hour, display green. It is in UNIX format
+        if (remainingTime < -3600)
+            background_color := color.green
+        else // for some reason, if i dont put else, it wont color red lmao
+            background_color := color.red
+        table.cell(table_id = news_Table, column = 0, row = table_row, bgcolor = background_color, text = str.tostring(i+1) + " " + str.tostring(formattedTime))
+        table.cell_set_text_size(news_Table, 0, table_row, size.large)
+        table.cell_set_text_color(news_Table, 0, table_row, color.white)
+
+
+// delete old tables
+table.delete(news_Table[1])
