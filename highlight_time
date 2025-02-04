@@ -1,0 +1,11 @@
+//@version=6
+indicator('Highlight Time', overlay = true)
+
+// from 8am to 12am, monday to sunday
+session = "0800-2400:1234567"
+
+// Check if the current time is within the specified range
+inTimeRange = math.sign(nz(time(timeframe.period, session, "UTC+8")))
+
+// Plot the background color if the current time is within the range
+bgcolor(inTimeRange > 0 ? color.new(color.blue, 90) : na)
