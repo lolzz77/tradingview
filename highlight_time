@@ -1,6 +1,10 @@
 //@version=6
 indicator('Highlight Time', overlay = true)
 
+// -----------
+// My trading
+// -----------
+
 // from 8am to 12am, monday to sunday
 session = "0800-2400:1234567"
 
@@ -8,4 +12,26 @@ session = "0800-2400:1234567"
 inTimeRange = math.sign(nz(time(timeframe.period, session, "UTC+8")))
 
 // Plot the background color if the current time is within the range
-bgcolor(inTimeRange > 0 ? color.new(color.blue, 90) : na)
+bgcolor(inTimeRange > 0 ? color.new(color.blue, 90) : na, title = "My session")
+
+
+// -----------
+// Asia open
+// -----------
+asia_session = "0700-1000:1234567"
+asia_inTimeRange = math.sign(nz(time(timeframe.period, asia_session, "UTC+8")))
+bgcolor(asia_inTimeRange > 0 ? color.new(color.red, 90) : na, title = "Asia session")
+
+// -----------
+// Germany open
+// -----------
+germany_session = "1500-1630:1234567"
+germany_inTimeRange = math.sign(nz(time(timeframe.period, germany_session, "UTC+8")))
+bgcolor(germany_inTimeRange > 0 ? color.new(color.green, 90) : na, title = "Germany session")
+
+// -----------
+// US open
+// -----------
+us_session = "2130-2300:1234567"
+us_inTimeRange = math.sign(nz(time(timeframe.period, us_session, "UTC+8")))
+bgcolor(us_inTimeRange > 0 ? color.new(color.yellow, 90) : na, title = "US session")
