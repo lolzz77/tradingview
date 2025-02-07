@@ -1,0 +1,77 @@
+//@version=5
+indicator("Normal Entry", overlay=true, max_labels_count=500)
+
+// I have list of setups
+// this is for Setup - Normal Entry
+// I tried to automate it for me, i too lazy to read chart every single day
+// This is so far what i coded
+// not perfect yet
+
+// Function to check if the current candle is within the specified time range
+isInTimeRange(startTime, endTime) =>
+    na(time) ? false : (time >= startTime and time <= endTime)
+
+// Define the start and end time in UNIX timestamp (UTC)
+//                               Timezone, year, m, d,  h,  m, s
+startTime = timestamp("Asia/Kuala_Lumpur", 2025, 2, 3,  0, 0 , 0)
+endTime   = timestamp("Asia/Kuala_Lumpur", 2025, 2, 3, 23, 59, 0)
+
+
+// Check if the current candle is within the specified time range
+inTimeRange = isInTimeRange(startTime, endTime)
+//inTimeRange = true
+if inTimeRange
+
+    // Used to prevent 2 continuous impulsive candle labelling
+    // I only want to label 1 impuslve candle. If next candle
+    // is also impulsive, ignore, dont label
+    var last_label = 0
+    
+    // tells me when maximum label has reached
+    var label_count = 0
+
+    var to_label = false
+
+    // Get the high and low of previous and current candles
+    prevCandleHigh = high[1]
+    prevCandleLow = low[1]
+    currCandleHigh = high
+    currCandleLow = low
+
+    // Calculate the size of previous and current candles including wick
+    prevCandleSize = prevCandleHigh - prevCandleLow
+    currCandleSize = currCandleHigh - currCandleLow
+
+    // Calculate the height of previous and current candles
+    prevCandleHeight = prevCandleHigh - prevCandleLow
+    currCandleHeight = currCandleHigh - currCandleLow
+
+
+    // Determine the label for the current impulsive candle
+    if close > open  // Bullish impulsive candle
+        // Condition to check if the current candle height is greater than the previous candle height plus its size
+        isImpulsiveBuy = currCandleHigh >= (prevCandleHigh + prevCandleSize)
+        if isImpulsiveBuy
+            if last_label != 1
+                label.new(bar_index[1], high, "Buy", color=color.green, textcolor=color.white, style=label.style_label_down, size=size.small)    
+                to_label := true
+            last_label := 0
+    else  // Bearish impulsive candle
+        isImpulsiveSell = currCandleLow <= (prevCandleLow - prevCandleSize)
+        if isImpulsiveSell
+            if last_label != 1
+                label.new(bar_index[1], low, "Sell", color=color.red, textcolor=color.white, style=label.style_label_up, size=size.small)
+                to_label := true
+            last_label := 0
+
+    last_label := last_label + 1
+
+    if to_label
+        to_label := false
+        label_count := label_count + 1
+        if label_count > 500
+            log.warning("Max label count reached " + str.tostring(label_count))
+
+
+
+
