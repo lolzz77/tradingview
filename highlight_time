@@ -1,12 +1,33 @@
 //@version=6
-indicator('Highlight Time', overlay = true)
+indicator('Highlight Time', overlay = true, max_lines_count = 500)
+
+
+instrument = syminfo.ticker
+log.info(instrument)
+
+
+daylight_saving_EU = input.bool(true, title="Daylight Saving Europe")
+daylight_saving_US = input.bool(true, title="Daylight Saving United State")
+
 
 // -----------
-// My trading
+// My Trading Time
 // -----------
 
 // from 8am to 12am, monday to sunday
-session = "0800-2400:1234567"
+var session = "0800-2400:1234567"
+if instrument == "UK100" or instrument == "GER40"
+    if daylight_saving_EU
+        session := "1500-0100:1234567"
+    else
+        session := "1600-2400:1234567"
+
+if instrument == "NAS100" or instrument == "US30" or instrument == "SP500"
+    // originally, until 6am, but i wont be trading until 6am..
+    if daylight_saving_US
+        session := "2100-0100:1234567"
+    else
+        session := "2200-0100:1234567"
 
 // Check if the current time is within the specified range
 inTimeRange = math.sign(nz(time(timeframe.period, session, "UTC+8")))
@@ -35,3 +56,55 @@ bgcolor(germany_inTimeRange > 0 ? color.new(color.green, 90) : na, title = "Germ
 us_session = "2130-2300:1234567"
 us_inTimeRange = math.sign(nz(time(timeframe.period, us_session, "UTC+8")))
 bgcolor(us_inTimeRange > 0 ? color.new(color.yellow, 90) : na, title = "US session")
+
+
+
+// -----------
+// Draw session break
+// It will not draw on H4 and above time
+// -----------
+var me_sessionBreak = 0
+var draw_session_break = true
+sessionBreak = time_tradingday
+
+var four_hour = "240"
+var daily = "1D"
+var monthly = "1M"
+var weekly = "1W"
+
+if timeframe.period == four_hour
+    draw_session_break := false
+if timeframe.period == daily
+    draw_session_break := false
+if timeframe.period == monthly 
+    draw_session_break := false
+if timeframe.period == weekly
+    draw_session_break := false
+
+if draw_session_break
+    if(sessionBreak!=me_sessionBreak)
+        me_sessionBreak:=sessionBreak
+        // label.new(x=bar_index, y=high, text="New Day")
+        // no need bah i guess..
+        // line.new(bar_index, low, bar_index, high, style = line.style_dashed)
+
+
+
+// ---------
+// Draw ATH
+// ---------
+
+var ATH = high
+ATH := math.max(high, ATH)
+//var prev_ATH = 0.0
+//var ATH_bar = bar_index
+//if ATH > prev_ATH
+//    prev_ATH := ATH
+//    ATH_bar := bar_index
+
+//if barstate.islast
+//    line.new(ATH_bar, ATH, bar_index, ATH, extend = extend.right)
+
+plot_ATH = plot(ATH, color = color.new(color.purple, 50), title = "ATH Plot")
+plot_price_low = plot(low, display = display.none, title = "Price Low Plot")
+fill(plot_price_low, plot_ATH, color = color.new(color.purple, 95), title = "ATH Fill")
