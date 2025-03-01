@@ -6,8 +6,8 @@ instrument = syminfo.ticker
 log.info(instrument)
 
 
-daylight_saving_EU = input.bool(true, title="Daylight Saving Europe")
-daylight_saving_US = input.bool(true, title="Daylight Saving United State")
+daylight_saving_EU = input.bool(false, title="Daylight Saving Europe")
+daylight_saving_US = input.bool(false, title="Daylight Saving United State")
 
 
 // -----------
@@ -36,6 +36,9 @@ else
 // able to show open time
 // based on stock
 // ----------
+if instrument == "AUS200" or instrument == "JP225YJPY" or instrument == "HK50" or instrument == "CHINA50"
+    my_session := "0800-1700:1234567"
+
 if instrument == "UK100" or instrument == "GER40"
     if daylight_saving_EU
         my_session := "1500-0100:1234567"
