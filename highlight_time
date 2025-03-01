@@ -41,21 +41,21 @@ bgcolor(inTimeRange > 0 ? color.new(color.blue, 90) : na, title = "My session")
 // -----------
 asia_session = "0700-1000:1234567"
 asia_inTimeRange = math.sign(nz(time(timeframe.period, asia_session, "UTC+8")))
-bgcolor(asia_inTimeRange > 0 ? color.new(color.red, 90) : na, title = "Asia session")
+bgcolor(asia_inTimeRange > 0 ? color.new(color.red, 90) : na, title = "Asia session", display = display.none)
 
 // -----------
 // Germany open
 // -----------
 germany_session = "1500-1630:1234567"
 germany_inTimeRange = math.sign(nz(time(timeframe.period, germany_session, "UTC+8")))
-bgcolor(germany_inTimeRange > 0 ? color.new(color.green, 90) : na, title = "Germany session")
+bgcolor(germany_inTimeRange > 0 ? color.new(color.green, 90) : na, title = "Germany session", display = display.none)
 
 // -----------
 // US open
 // -----------
 us_session = "2130-2300:1234567"
 us_inTimeRange = math.sign(nz(time(timeframe.period, us_session, "UTC+8")))
-bgcolor(us_inTimeRange > 0 ? color.new(color.yellow, 90) : na, title = "US session")
+bgcolor(us_inTimeRange > 0 ? color.new(color.yellow, 90) : na, title = "US session", display = display.none)
 
 
 
@@ -105,6 +105,6 @@ ATH := math.max(high, ATH)
 //if barstate.islast
 //    line.new(ATH_bar, ATH, bar_index, ATH, extend = extend.right)
 
-plot_ATH = plot(ATH, color = color.new(color.purple, 50), title = "ATH Plot")
+plot_ATH = plot(ATH, color = color.new(color.yellow, 50), title = "ATH Plot", display = display.pane)
 plot_price_low = plot(low, display = display.none, title = "Price Low Plot")
-fill(plot_price_low, plot_ATH, color = color.new(color.purple, 95), title = "ATH Fill")
+fill(plot_price_low, plot_ATH, color = color.new(color.yellow, 95), title = "ATH Fill")
