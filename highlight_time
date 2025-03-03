@@ -3,7 +3,14 @@ indicator('Highlight Time', overlay = true, max_lines_count = 500)
 
 
 instrument = syminfo.ticker
-log.info(instrument)
+// Only on last bar & is newly generated bar
+// So that the log is not clogged
+// Ok nvm, when i switch to higher timeframe, it has no log, or waiting for one i dk
+//if barstate.islast and barstate.isnew
+
+// This one will TRUE every tick.
+if barstate.islast
+    log.info(instrument + " " + timeframe.period)
 
 
 daylight_saving_EU = input.bool(false, title="Daylight Saving Europe")
@@ -37,13 +44,20 @@ else
 // based on stock
 // ----------
 if instrument == "AUS200" or instrument == "JP225YJPY" or instrument == "HK50" or instrument == "CHINA50"
-    my_session := "0800-1700:1234567"
+    // AUS, usually after 2pm, the spread will be big ady
+    my_session := "0800-1300:1234567"
 
 if instrument == "UK100" or instrument == "GER40"
+    // I only wanna show the 1st half of market opening Day
+    // Usually 2nd half got 2 sessions running together and... probably not a good time for trade?
+    // Hence, Germany open is 4pm-12am (Daylight saving), but i want 4pm-8pm only
+    // Germany, possible to put before 4pm? Like Pre-London session, 2pm etc.
+    // Well, not really, 2pm the spread is 6, still big 99 until niama also cannot recognize
+    // For non-daylight saving time, market open is 4pm, but 3pm the spread will be reduced to 2
     if daylight_saving_EU
-        my_session := "1500-0100:1234567"
+        my_session := "1500-2000:1234567"
     else
-        my_session := "1600-2400:1234567"
+        my_session := "1500-2100:1234567"
 
 if instrument == "NAS100" or instrument == "US30" or instrument == "SP500"
     // originally, until 6am, but i wont be trading until 6am..
@@ -112,19 +126,26 @@ if draw_session_break
 
 // ---------
 // Draw ATH
+// I realize that, if M5, the maximum candle is 5k
+// Those ATH that is way before 5k candle, is missed
+// Hence, the best way to draw ATH, is draw based on 12 Months timeframe
 // ---------
 
-var ATH = high
+// Draw ATH on Yearly timeframe
+// Request Highest for Yearly chart
+var ATH = request.security(syminfo.tickerid, "12M", high)
 ATH := math.max(high, ATH)
-//var prev_ATH = 0.0
-//var ATH_bar = bar_index
-//if ATH > prev_ATH
-//    prev_ATH := ATH
-//    ATH_bar := bar_index
 
-//if barstate.islast
-//    line.new(ATH_bar, ATH, bar_index, ATH, extend = extend.right)
+// But then i realize, if you on weekly chart, the value will be "NA"
+// Not sure what happened but i guess, can put check if "NA", then draw 
+// ATH based on current timeframe
+if na(ATH)
+    log.info("ATH is NA")
+    ATH := high
+    ATH := math.max(high, ATH)
 
+// Plot the ATH on the M5 chart
 plot_ATH = plot(ATH, color = color.new(color.yellow, 50), title = "ATH Plot", display = display.pane)
 plot_price_low = plot(low, display = display.none, title = "Price Low Plot")
 fill(plot_price_low, plot_ATH, color = color.new(color.yellow, 95), title = "ATH Fill")
+
