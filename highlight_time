@@ -1,70 +1,77 @@
 //@version=6
 indicator('Highlight Time', overlay = true, max_lines_count = 500)
 
-
+// Intrument are Symbols, eg: DJI, NAS, UK100, etc
 instrument = syminfo.ticker
+
+// Logging:
 // Only on last bar & is newly generated bar
 // So that the log is not clogged
 // Ok nvm, when i switch to higher timeframe, it has no log, or waiting for one i dk
-//if barstate.islast and barstate.isnew
-
+//      if barstate.islast and barstate.isnew       //
 // This one will TRUE every tick.
 if barstate.islast
     log.info(instrument + " " + timeframe.period)
 
 
-daylight_saving_EU = input.bool(false, title="Daylight Saving Europe")
-daylight_saving_US = input.bool(false, title="Daylight Saving United State")
 
 
-// -----------
-// Trading Time
-// -----------
 
-// from 8am to 12am, monday to sunday
-var my_session      = "0800-2400:1234567"
-var asia_session    = "0700-1000:1234567"
-var germany_session = ""
-var us_session      = ""
 
-if daylight_saving_EU
-    germany_session := "1500-1630:1234567"
-else
-    germany_session := "1600-1730:1234567"
 
-if daylight_saving_US
-    us_session := "2130-2300:1234567"
-else
-    us_session := "2230-2400:1234567"
 
-// ----------
-// PLotting for My session
-// I want my session to be
-// able to show open time
-// based on stock
-// ----------
-if instrument == "AUS200" or instrument == "JP225YJPY" or instrument == "HK50" or instrument == "CHINA50"
-    // AUS, usually after 2pm, the spread will be big ady
-    my_session := "0800-1300:1234567"
+
+
+
+
+
+//
+// Draw Trading Time
+//
+
+// Default: from 8am to 12am, monday to sunday
+var my_session = "0800-2400:1234567"
+var bool is_daylight_saving = false
+
+if instrument == "JP225YJPY"
+    my_session := "0800-1430:1234567"
+
+if instrument == "HK50"
+    my_session := "0900-1600:1234567"
+
+if instrument == "CHINA50"
+    my_session := "0900-1500:1234567"
+
+// From what i understand
+// timestamp("1 Jan 2025") is the UNIX time since 1 Jan 1970 in UTC +0
+// Hence, you should convert UNIX time into UTC+0 first
+// Then, you convvert again to Malaysia time GMT+8
+// Hence, 1 Jan 2025, will be converted to 8am 1 Jan 2025 to your timezone
+// Hence, all these timestamp() will be TRUE after 6am in your timezone
+if instrument == "AUS200"
+    if  timenow > timestamp("6 Oct 2024") and timenow < timestamp("6 Apr 2025")
+        my_session := "0700-1300:1234567"
+        is_daylight_saving := true
+    else
+        my_session := "0800-1400:1234567"
+        is_daylight_saving := false
+
 
 if instrument == "UK100" or instrument == "GER40"
-    // I only wanna show the 1st half of market opening Day
-    // Usually 2nd half got 2 sessions running together and... probably not a good time for trade?
-    // Hence, Germany open is 4pm-12am (Daylight saving), but i want 4pm-8pm only
-    // Germany, possible to put before 4pm? Like Pre-London session, 2pm etc.
-    // Well, not really, 2pm the spread is 6, still big 99 until niama also cannot recognize
-    // For non-daylight saving time, market open is 4pm, but 3pm the spread will be reduced to 2
-    if daylight_saving_EU
-        my_session := "1500-2000:1234567"
+    if  timenow > timestamp("30 Mar 2025") and timenow < timestamp("26 Oct 2025")
+        my_session := "1500-2330:1234567"
+        is_daylight_saving := true
     else
-        my_session := "1500-2100:1234567"
+        my_session := "1600-0030:1234567"
+        is_daylight_saving := false
 
 if instrument == "NAS100" or instrument == "US30" or instrument == "SP500"
-    // originally, until 6am, but i wont be trading until 6am..
-    if daylight_saving_US
-        my_session := "2100-0100:1234567"
+    if  timenow > timestamp("9 Mar 2025") and timenow < timestamp("2 Nov 2025")
+        my_session := "2130-0400:1234567"
+        is_daylight_saving := true
     else
-        my_session := "2200-0100:1234567"
+        my_session := "2230-0500:1234567"
+        is_daylight_saving := false
 
 // Check if the current time is within the specified range
 inTimeRange = math.sign(nz(time(timeframe.period, my_session, "UTC+8")))
@@ -73,30 +80,33 @@ inTimeRange = math.sign(nz(time(timeframe.period, my_session, "UTC+8")))
 bgcolor(inTimeRange > 0 ? color.new(color.blue, 90) : na, title = "My session")
 
 
-// -----------
-// PLotting Asia open
-// -----------
-asia_inTimeRange = math.sign(nz(time(timeframe.period, asia_session, "UTC+8")))
-bgcolor(asia_inTimeRange > 0 ? color.new(color.red, 90) : na, title = "Asia session", display = display.none)
-
-// -----------
-// Plotting Germany open
-// -----------
-germany_inTimeRange = math.sign(nz(time(timeframe.period, germany_session, "UTC+8")))
-bgcolor(germany_inTimeRange > 0 ? color.new(color.green, 90) : na, title = "Germany session", display = display.none)
-
-// -----------
-// Plotting US open
-// -----------
-us_inTimeRange = math.sign(nz(time(timeframe.period, us_session, "UTC+8")))
-bgcolor(us_inTimeRange > 0 ? color.new(color.yellow, 90) : na, title = "US session", display = display.none)
+// Draw daylight saving time table
+var dst_table = table.new(position = position.top_right, columns = 1, rows = 1, bgcolor = color.new(color.blue, 90), border_color=color.blue, border_width = 1)
+if barstate.islast
+    table.cell(table_id = dst_table, column = 0, row = 0, text = is_daylight_saving ? "Daylight Saving" : "Standard", text_color=color.new(color.white, 30),text_size = size.small)
 
 
 
-// -----------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
 // Draw session break
 // It will not draw on H4 and above time
-// -----------
+//
 var me_sessionBreak = 0
 var draw_session_break = true
 sessionBreak = time_tradingday
@@ -124,12 +134,24 @@ if draw_session_break
 
 
 
-// ---------
+
+
+
+
+
+
+
+
+
+
+
+
+//
 // Draw ATH
 // I realize that, if M5, the maximum candle is 5k
 // Those ATH that is way before 5k candle, is missed
 // Hence, the best way to draw ATH, is draw based on 12 Months timeframe
-// ---------
+//
 
 // Draw ATH on Yearly timeframe
 // Request Highest for Yearly chart
