@@ -28,19 +28,23 @@ if barstate.islast
 //
 // Draw Trading Time
 //
+var bool is_daylight_saving = false
+var dst_start = ""
+var dst_end = ""
 
 // Default: from 8am to 12am, monday to sunday
-var my_session = "0800-2400:1234567"
-var bool is_daylight_saving = false
+var          session_time = "0800-2400"
+const string session_days = ":1234567"
+var my_session = session_time + session_days
 
 if instrument == "JP225YJPY"
-    my_session := "0800-1430:1234567"
+    session_time := "0800-1430"
 
 if instrument == "HK50"
-    my_session := "0900-1600:1234567"
+    session_time := "0900-1600"
 
 if instrument == "CHINA50"
-    my_session := "0900-1500:1234567"
+    session_time := "0900-1500"
 
 // From what i understand
 // timestamp("1 Jan 2025") is the UNIX time since 1 Jan 1970 in UTC +0
@@ -49,29 +53,37 @@ if instrument == "CHINA50"
 // Hence, 1 Jan 2025, will be converted to 8am 1 Jan 2025 to your timezone
 // Hence, all these timestamp() will be TRUE after 6am in your timezone
 if instrument == "AUS200"
+    dst_start := "06 Oct 2024"
+    dst_end   := "06 Apr 2025"
     if  timenow > timestamp("6 Oct 2024") and timenow < timestamp("6 Apr 2025")
-        my_session := "0700-1300:1234567"
+        session_time := "0700-1300"
         is_daylight_saving := true
     else
-        my_session := "0800-1400:1234567"
+        session_time := "0800-1400"
         is_daylight_saving := false
 
 
 if instrument == "UK100" or instrument == "GER40"
+    dst_start := "30 Mar 2025"
+    dst_end   := "26 Oct 2025"
     if  timenow > timestamp("30 Mar 2025") and timenow < timestamp("26 Oct 2025")
-        my_session := "1500-2330:1234567"
+        session_time := "1500-2330"
         is_daylight_saving := true
     else
-        my_session := "1600-0030:1234567"
+        session_time := "1600-0030"
         is_daylight_saving := false
 
 if instrument == "NAS100" or instrument == "US30" or instrument == "SP500"
-    if  timenow > timestamp("9 Mar 2025") and timenow < timestamp("2 Nov 2025")
-        my_session := "2130-0400:1234567"
+    dst_start := "09 Mar 2025"
+    dst_end   := "02 Nov 2025"
+    if  timenow > timestamp("09 Mar 2025") and timenow < timestamp("02 Nov 2025")
+        session_time := "2130-0400"
         is_daylight_saving := true
     else
-        my_session := "2230-0500:1234567"
+        session_time := "2230-0500"
         is_daylight_saving := false
+
+my_session := session_time + session_days
 
 // Check if the current time is within the specified range
 inTimeRange = math.sign(nz(time(timeframe.period, my_session, "UTC+8")))
@@ -81,9 +93,15 @@ bgcolor(inTimeRange > 0 ? color.new(color.blue, 90) : na, title = "My session")
 
 
 // Draw daylight saving time table
-var dst_table = table.new(position = position.top_right, columns = 1, rows = 1, bgcolor = color.new(color.blue, 90), border_color=color.blue, border_width = 1)
+var dst_table = table.new(position = position.top_right, columns = 1, rows = 3, bgcolor = color.new(color.blue, 90), border_color=color.new(color.blue,50), border_width = 1)
 if barstate.islast
-    table.cell(table_id = dst_table, column = 0, row = 0, text = is_daylight_saving ? "Daylight Saving" : "Standard", text_color=color.new(color.white, 30),text_size = size.small)
+    table.cell(table_id = dst_table, column = 0, row = 0, text_color=color.new(color.white, 30),text_size = size.small, text = is_daylight_saving ? "Daylight Saving" : "Standard")
+
+    table.cell(table_id = dst_table, column = 0, row = 1, text_color=color.new(color.white, 30),text_size = size.small, text = session_time)
+
+    table.cell(table_id = dst_table, column = 0, row = 2, text_color=color.new(color.white, 30),text_size = size.small, text = dst_start + " - " + dst_end)
+
+
 
 
 
