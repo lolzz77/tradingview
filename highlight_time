@@ -55,7 +55,7 @@ if instrument == "CHINA50"
 if instrument == "AUS200"
     dst_start := "06 Oct 2024"
     dst_end   := "06 Apr 2025"
-    if  timenow > timestamp("6 Oct 2024") and timenow < timestamp("6 Apr 2025")
+    if  time > timestamp("6 Oct 2024") and time < timestamp("6 Apr 2025")
         session_time := "0700-1300"
         is_daylight_saving := true
     else
@@ -66,7 +66,10 @@ if instrument == "AUS200"
 if instrument == "UK100" or instrument == "GER40"
     dst_start := "30 Mar 2025"
     dst_end   := "26 Oct 2025"
-    if  timenow > timestamp("30 Mar 2025") and timenow < timestamp("26 Oct 2025")
+    // Use "time" dont use "timenow"
+    // "time" get the current bar index time
+    // "timenow" get the current time regardless bar index
+    if  time > timestamp("30 Mar 2025") and time < timestamp("26 Oct 2025")
         session_time := "1500-2330"
         is_daylight_saving := true
     else
@@ -76,7 +79,7 @@ if instrument == "UK100" or instrument == "GER40"
 if instrument == "NAS100" or instrument == "US30" or instrument == "SP500"
     dst_start := "09 Mar 2025"
     dst_end   := "02 Nov 2025"
-    if  timenow > timestamp("09 Mar 2025") and timenow < timestamp("02 Nov 2025")
+    if  time > timestamp("09 Mar 2025") and time < timestamp("02 Nov 2025")
         session_time := "2130-0400"
         is_daylight_saving := true
     else
