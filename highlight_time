@@ -148,9 +148,9 @@ if barstate.islast
 
     // Draw daylight saving time table
     var dst_table = table.new(position = position.top_right, columns = 1, rows = 3, bgcolor = color.new(color.blue, 90), border_color=color.new(color.blue,50), border_width = 1)
-    table.cell(table_id = dst_table, column = 0, row = 0, text_color=color.new(color.white, 30)                                                                                          , text_size = font_size, text = is_daylight_saving ? "Daylight Saving" : "Standard")
-    table.cell(table_id = dst_table, column = 0, row = 1, text_color=color.new(color.white, 30), bgcolor = is_in_session ? color.new(color.red, 70) : color.new(color.blue, 100)     , text_size = font_size, text = session_time + " (" + str.tostring(formatted_time) +")")
-    table.cell(table_id = dst_table, column = 0, row = 2, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.red, 70) : color.new(color.blue, 100), text_size = font_size, text = dst_start + " - " + dst_end)
+    table.cell(table_id = dst_table, column = 0, row = 0, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = font_size, text = is_daylight_saving ? "Daylight Saving" : "Standard")
+    table.cell(table_id = dst_table, column = 0, row = 1, text_color=color.new(color.white, 30), bgcolor = is_in_session      ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = font_size, text = session_time + " (" + str.tostring(formatted_time) +")")
+    table.cell(table_id = dst_table, column = 0, row = 2, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = font_size, text = dst_start + " - " + dst_end)
 
 
 
