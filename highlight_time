@@ -13,11 +13,23 @@ instrument = syminfo.ticker
 if barstate.islast
     log.info(instrument + " " + timeframe.period)
 
+my_timezone = "Asia/Kuala_Lumpur"
+var current_symbol_timezone = "Asia/Kuala_Lumpur"
 
+// Create input options
+size_option = input.string( title = "Font Size", options = ["Tiny", "Small (default)", "Normal", "Large", "Huge", "Auto"], defval = "Small (default)" )
+var font_size = size.small
 
-
-
-
+if size_option == "Tiny"
+    font_size := size.tiny
+else if size_option == "Normal"
+    font_size := size.normal
+else if size_option == "Large"
+    font_size := size.large
+else if size_option == "Huge"
+    font_size := size.huge
+else if size_option == "Auto"
+    font_size := size.auto
 
 
 
@@ -30,7 +42,9 @@ if barstate.islast
 //
 var bool is_daylight_saving = false
 var dst_start = ""
-var dst_end = ""
+var dst_end   = ""
+var session_start = timestamp(my_timezone, year(time, my_timezone), month(time, my_timezone), dayofmonth(time, my_timezone), 8, 0, 0)
+var session_end   = timestamp(my_timezone, year(time, my_timezone), month(time, my_timezone), dayofmonth(time, my_timezone), 24, 0, 0)
 
 // Default: from 8am to 12am, monday to sunday
 var          session_time = "0800-2400"
@@ -39,12 +53,21 @@ var my_session = session_time + session_days
 
 if instrument == "JP225YJPY"
     session_time := "0800-1430"
+    current_symbol_timezone := "GMT+9"
+    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 9, 0, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 15, 30, 0)
 
 if instrument == "HK50"
     session_time := "0900-1600"
+    current_symbol_timezone := "GMT+8"
+    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 9, 0, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 16, 0, 0)
 
 if instrument == "CHINA50"
     session_time := "0900-1500"
+    current_symbol_timezone := "GMT+8"
+    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 9, 0, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 15, 0, 0)
 
 // From what i understand
 // timestamp("1 Jan 2025") is the UNIX time since 1 Jan 1970 in UTC +0
@@ -55,6 +78,9 @@ if instrument == "CHINA50"
 if instrument == "AUS200"
     dst_start := "06 Oct 2024"
     dst_end   := "06 Apr 2025"
+    current_symbol_timezone := syminfo.timezone
+    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 10, 0, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 16, 0, 0)
     if  time > timestamp("6 Oct 2024") and time < timestamp("6 Apr 2025")
         session_time := "0700-1300"
         is_daylight_saving := true
@@ -66,6 +92,9 @@ if instrument == "AUS200"
 if instrument == "UK100" or instrument == "GER40"
     dst_start := "30 Mar 2025"
     dst_end   := "26 Oct 2025"
+    current_symbol_timezone := "GMT+0"
+    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 8, 0, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 16, 30, 0)
     // Use "time" dont use "timenow"
     // "time" get the current bar index time
     // "timenow" get the current time regardless bar index
@@ -79,6 +108,9 @@ if instrument == "UK100" or instrument == "GER40"
 if instrument == "NAS100" or instrument == "US30" or instrument == "SP500"
     dst_start := "09 Mar 2025"
     dst_end   := "02 Nov 2025"
+    current_symbol_timezone := syminfo.timezone
+    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 9, 30, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 16, 0, 0)
     if  time > timestamp("09 Mar 2025") and time < timestamp("02 Nov 2025")
         session_time := "2130-0400"
         is_daylight_saving := true
@@ -88,25 +120,45 @@ if instrument == "NAS100" or instrument == "US30" or instrument == "SP500"
 
 my_session := session_time + session_days
 
-// Check if the current time is within the specified range
-inTimeRange = math.sign(nz(time(timeframe.period, my_session, "UTC+8")))
+// Check if the current time is within the specified range, in my timezone
+inTimeRange = math.sign(nz(time(timeframe.period, my_session, my_timezone)))
 
 // Plot the background color if the current time is within the range
 bgcolor(inTimeRange > 0 ? color.new(color.blue, 90) : na, title = "My session")
 
-
-// Draw daylight saving time table
-var dst_table = table.new(position = position.top_right, columns = 1, rows = 3, bgcolor = color.new(color.blue, 90), border_color=color.new(color.blue,50), border_width = 1)
 if barstate.islast
-    table.cell(table_id = dst_table, column = 0, row = 0, text_color=color.new(color.white, 30),text_size = size.small, text = is_daylight_saving ? "Daylight Saving" : "Standard")
+    current_time = timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), hour(time, current_symbol_timezone), minute(time, current_symbol_timezone), second(time, current_symbol_timezone))
 
-    table.cell(table_id = dst_table, column = 0, row = 1, text_color=color.new(color.white, 30),text_size = size.small, text = session_time)
+    is_in_session = (current_time >= session_start and current_time < session_end)
+    var countdown = current_time
+    if is_in_session
+        // if in session, calculate countdown to session close
+        countdown := math.abs(session_end - current_time)
+    else
+        // else, calculate countdown to session start
+        // check if pass session_end, if it is, then need to calculate based on session_start that is tomorrow's
+        if current_time > session_end
+            session_start := session_start + 86400000
+        countdown := math.abs(current_time - session_start)
 
-    table.cell(table_id = dst_table, column = 0, row = 2, text_color=color.new(color.white, 30),text_size = size.small, text = dst_start + " - " + dst_end)
+    // Convert to HH:mm format
+    hours_left = math.floor(countdown / 1000 / 60 / 60)
+    minutes_left = ((countdown / 1000 / 60 / 60) - hours_left) * 60
+    formatted_time = str.tostring(hours_left, "00") + ":" + str.tostring(minutes_left, "00")
+
+    log.info("1 " + str.tostring(current_time))
+    log.info("2 " + str.tostring(session_start))
+    log.info("3 " + str.tostring(session_end))
+    log.info("4 " + str.tostring(countdown))
 
 
 
 
+    // Draw daylight saving time table
+    var dst_table = table.new(position = position.top_right, columns = 1, rows = 3, bgcolor = color.new(color.blue, 90), border_color=color.new(color.blue,50), border_width = 1)
+    table.cell(table_id = dst_table, column = 0, row = 0, text_color=color.new(color.white, 30)                                                                                          , text_size = font_size, text = is_daylight_saving ? "Daylight Saving" : "Standard")
+    table.cell(table_id = dst_table, column = 0, row = 1, text_color=color.new(color.white, 30), bgcolor = is_in_session ? color.new(color.red, 70) : color.new(color.blue, 100)     , text_size = font_size, text = session_time + " (" + str.tostring(formatted_time) +")")
+    table.cell(table_id = dst_table, column = 0, row = 2, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.red, 70) : color.new(color.blue, 100), text_size = font_size, text = dst_start + " - " + dst_end)
 
 
 
