@@ -45,6 +45,10 @@ var dst_start = ""
 var dst_end   = ""
 var session_start = timestamp(my_timezone, year(time, my_timezone), month(time, my_timezone), dayofmonth(time, my_timezone), 8, 0, 0)
 var session_end   = timestamp(my_timezone, year(time, my_timezone), month(time, my_timezone), dayofmonth(time, my_timezone), 24, 0, 0)
+// I need to do this so that, it will get this variable updated as the script go thru the bar_index
+// If not, this variable, will always be the 1st bar_index's one
+session_start    := timestamp(my_timezone, year(time, my_timezone), month(time, my_timezone), dayofmonth(time, my_timezone), 8, 0, 0)
+session_end      := timestamp(my_timezone, year(time, my_timezone), month(time, my_timezone), dayofmonth(time, my_timezone), 24, 0, 0)
 
 // Default: from 8am to 12am, monday to sunday
 var          session_time = "0800-2400"
@@ -140,7 +144,10 @@ if barstate.islast
         if current_time > session_end
             session_start := session_start + 86400000
         countdown := math.abs(current_time - session_start)
-
+    log.info("1 " + str.tostring(current_time))
+    log.info("2 " + str.tostring(session_start))
+    log.info("3 " + str.tostring(session_end))
+    log.info("4 " + str.tostring(countdown))
     // Convert to HH:mm format
     hours_left = math.floor(countdown / 1000 / 60 / 60)
     minutes_left = ((countdown / 1000 / 60 / 60) - hours_left) * 60
