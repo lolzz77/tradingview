@@ -146,14 +146,6 @@ if barstate.islast
     minutes_left = ((countdown / 1000 / 60 / 60) - hours_left) * 60
     formatted_time = str.tostring(hours_left, "00") + ":" + str.tostring(minutes_left, "00")
 
-    log.info("1 " + str.tostring(current_time))
-    log.info("2 " + str.tostring(session_start))
-    log.info("3 " + str.tostring(session_end))
-    log.info("4 " + str.tostring(countdown))
-
-
-
-
     // Draw daylight saving time table
     var dst_table = table.new(position = position.top_right, columns = 1, rows = 3, bgcolor = color.new(color.blue, 90), border_color=color.new(color.blue,50), border_width = 1)
     table.cell(table_id = dst_table, column = 0, row = 0, text_color=color.new(color.white, 30)                                                                                          , text_size = font_size, text = is_daylight_saving ? "Daylight Saving" : "Standard")
