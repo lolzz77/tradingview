@@ -1,8 +1,8 @@
 //@version=6
 indicator('Highlight Time', overlay = true, max_lines_count = 500)
 
-// Intrument are Symbols, eg: DJI, NAS, UK100, etc
-instrument = syminfo.ticker
+// Symbols are eg: DJI, NAS, UK100, etc
+symbol = syminfo.ticker
 
 // Logging:
 // Only on last bar & is newly generated bar
@@ -11,24 +11,25 @@ instrument = syminfo.ticker
 //      if barstate.islast and barstate.isnew       //
 // This one will TRUE every tick.
 if barstate.islast
-    log.info(instrument + " " + timeframe.period)
+    log.info(symbol + " " + timeframe.period)
 
+time_m5 = request.security(syminfo.tickerid, "5", time)
 my_timezone = "Asia/Kuala_Lumpur"
 var current_symbol_timezone = "Asia/Kuala_Lumpur"
 
 // Create input options
-size_option = input.string( title = "Font Size", options = ["Tiny", "Small (default)", "Normal", "Large", "Huge", "Auto"], defval = "Small (default)" )
+font_size_option = input.string( title = "Font Size", options = ["Tiny", "Small (default)", "Normal", "Large", "Huge", "Auto"], defval = "Small (default)" )
 var font_size = size.small
 
-if size_option == "Tiny"
+if font_size_option == "Tiny"
     font_size := size.tiny
-else if size_option == "Normal"
+else if font_size_option == "Normal"
     font_size := size.normal
-else if size_option == "Large"
+else if font_size_option == "Large"
     font_size := size.large
-else if size_option == "Huge"
+else if font_size_option == "Huge"
     font_size := size.huge
-else if size_option == "Auto"
+else if font_size_option == "Auto"
     font_size := size.auto
 
 
@@ -43,35 +44,35 @@ else if size_option == "Auto"
 var bool is_daylight_saving = false
 var dst_start = ""
 var dst_end   = ""
-var session_start = timestamp(my_timezone, year(time, my_timezone), month(time, my_timezone), dayofmonth(time, my_timezone), 8, 0, 0)
-var session_end   = timestamp(my_timezone, year(time, my_timezone), month(time, my_timezone), dayofmonth(time, my_timezone), 24, 0, 0)
+var session_start = timestamp(my_timezone, year(time_m5, my_timezone), month(time_m5, my_timezone), dayofmonth(time_m5, my_timezone), 8, 0, 0)
+var session_end   = timestamp(my_timezone, year(time_m5, my_timezone), month(time_m5, my_timezone), dayofmonth(time_m5, my_timezone), 24, 0, 0)
 // I need to do this so that, it will get this variable updated as the script go thru the bar_index
 // If not, this variable, will always be the 1st bar_index's one
-session_start    := timestamp(my_timezone, year(time, my_timezone), month(time, my_timezone), dayofmonth(time, my_timezone), 8, 0, 0)
-session_end      := timestamp(my_timezone, year(time, my_timezone), month(time, my_timezone), dayofmonth(time, my_timezone), 24, 0, 0)
+session_start    := timestamp(my_timezone, year(time_m5, my_timezone), month(time_m5, my_timezone), dayofmonth(time_m5, my_timezone), 8, 0, 0)
+session_end      := timestamp(my_timezone, year(time_m5, my_timezone), month(time_m5, my_timezone), dayofmonth(time_m5, my_timezone), 24, 0, 0)
 
 // Default: from 8am to 12am, monday to sunday
 var          session_time = "0800-2400"
 const string session_days = ":1234567"
 var my_session = session_time + session_days
 
-if instrument == "JP225YJPY"
+if symbol == "JP225YJPY"
     session_time := "0800-1430"
     current_symbol_timezone := "GMT+9"
-    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 9, 0, 0)
-    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 15, 30, 0)
+    session_start := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 9, 0, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 15, 30, 0)
 
-if instrument == "HK50"
+if symbol == "HK50"
     session_time := "0900-1600"
     current_symbol_timezone := "GMT+8"
-    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 9, 0, 0)
-    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 16, 0, 0)
+    session_start := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 9, 0, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 16, 0, 0)
 
-if instrument == "CHINA50"
+if symbol == "CHINA50"
     session_time := "0900-1500"
     current_symbol_timezone := "GMT+8"
-    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 9, 0, 0)
-    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 15, 0, 0)
+    session_start := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 9, 0, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 15, 0, 0)
 
 // From what i understand
 // timestamp("1 Jan 2025") is the UNIX time since 1 Jan 1970 in UTC +0
@@ -79,13 +80,13 @@ if instrument == "CHINA50"
 // Then, you convvert again to Malaysia time GMT+8
 // Hence, 1 Jan 2025, will be converted to 8am 1 Jan 2025 to your timezone
 // Hence, all these timestamp() will be TRUE after 6am in your timezone
-if instrument == "AUS200"
+if symbol == "AUS200"
     dst_start := "06 Oct 2024"
     dst_end   := "06 Apr 2025"
     current_symbol_timezone := syminfo.timezone
-    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 10, 0, 0)
-    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 16, 0, 0)
-    if  time > timestamp("6 Oct 2024") and time < timestamp("6 Apr 2025")
+    session_start := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 10, 0, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 16, 0, 0)
+    if  time_m5 > timestamp("6 Oct 2024") and time_m5 < timestamp("6 Apr 2025")
         session_time := "0700-1300"
         is_daylight_saving := true
     else
@@ -93,29 +94,29 @@ if instrument == "AUS200"
         is_daylight_saving := false
 
 
-if instrument == "UK100" or instrument == "GER40"
+if symbol == "UK100" or symbol == "GER40"
     dst_start := "30 Mar 2025"
     dst_end   := "26 Oct 2025"
     current_symbol_timezone := "GMT+0"
-    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 8, 0, 0)
-    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 16, 30, 0)
+    session_start := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 8, 0, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 16, 30, 0)
     // Use "time" dont use "timenow"
     // "time" get the current bar index time
     // "timenow" get the current time regardless bar index
-    if  time > timestamp("30 Mar 2025") and time < timestamp("26 Oct 2025")
+    if  time_m5 > timestamp("30 Mar 2025") and time_m5 < timestamp("26 Oct 2025")
         session_time := "1500-2330"
         is_daylight_saving := true
     else
         session_time := "1600-0030"
         is_daylight_saving := false
 
-if instrument == "NAS100" or instrument == "US30" or instrument == "SP500"
+if symbol == "NAS100" or symbol == "US30" or symbol == "SP500"
     dst_start := "09 Mar 2025"
     dst_end   := "02 Nov 2025"
     current_symbol_timezone := syminfo.timezone
-    session_start := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 9, 30, 0)
-    session_end   := timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), 16, 0, 0)
-    if  time > timestamp("09 Mar 2025") and time < timestamp("02 Nov 2025")
+    session_start := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 9, 30, 0)
+    session_end   := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 16, 0, 0)
+    if  time_m5 > timestamp("09 Mar 2025") and time_m5 < timestamp("02 Nov 2025")
         session_time := "2130-0400"
         is_daylight_saving := true
     else
@@ -131,7 +132,7 @@ inTimeRange = math.sign(nz(time(timeframe.period, my_session, my_timezone)))
 bgcolor(inTimeRange > 0 ? color.new(color.blue, 90) : na, title = "My session")
 
 if barstate.islast
-    current_time = timestamp(current_symbol_timezone, year(time, current_symbol_timezone), month(time, current_symbol_timezone), dayofmonth(time, current_symbol_timezone), hour(time, current_symbol_timezone), minute(time, current_symbol_timezone), second(time, current_symbol_timezone))
+    current_time = timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), hour(time_m5, current_symbol_timezone), minute(time_m5, current_symbol_timezone), second(time_m5, current_symbol_timezone))
 
     is_in_session = (current_time >= session_start and current_time < session_end)
     var countdown = current_time
