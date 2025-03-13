@@ -131,6 +131,7 @@ inTimeRange = math.sign(nz(time(timeframe.period, my_session, my_timezone)))
 // Plot the background color if the current time is within the range
 bgcolor(inTimeRange > 0 ? color.new(color.blue, 90) : na, title = "My session")
 
+
 if barstate.islast
     current_time = timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), hour(time_m5, current_symbol_timezone), minute(time_m5, current_symbol_timezone), second(time_m5, current_symbol_timezone))
 
@@ -145,10 +146,7 @@ if barstate.islast
         if current_time > session_end
             session_start := session_start + 86400000
         countdown := math.abs(current_time - session_start)
-    log.info("1 " + str.tostring(current_time))
-    log.info("2 " + str.tostring(session_start))
-    log.info("3 " + str.tostring(session_end))
-    log.info("4 " + str.tostring(countdown))
+ 
     // Convert to HH:mm format
     hours_left = math.floor(countdown / 1000 / 60 / 60)
     minutes_left = ((countdown / 1000 / 60 / 60) - hours_left) * 60
