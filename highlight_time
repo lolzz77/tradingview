@@ -18,19 +18,19 @@ my_timezone = "Asia/Kuala_Lumpur"
 var current_symbol_timezone = "Asia/Kuala_Lumpur"
 
 // Create input options
-font_size_option = input.string( title = "Font Size", options = ["Tiny", "Small (default)", "Normal", "Large", "Huge", "Auto"], defval = "Small (default)" )
-var font_size = size.small
+table_font_size_option = input.string(title = "Table Font Size", options = ["Tiny", "Small (default)", "Normal", "Large", "Huge", "Auto"], defval = "Small (default)" )
+var table_font_size = size.small
 
-if font_size_option == "Tiny"
-    font_size := size.tiny
-else if font_size_option == "Normal"
-    font_size := size.normal
-else if font_size_option == "Large"
-    font_size := size.large
-else if font_size_option == "Huge"
-    font_size := size.huge
-else if font_size_option == "Auto"
-    font_size := size.auto
+if table_font_size_option == "Tiny"
+    table_font_size := size.tiny
+else if table_font_size_option == "Normal"
+    table_font_size := size.normal
+else if table_font_size_option == "Large"
+    table_font_size := size.large
+else if table_font_size_option == "Huge"
+    table_font_size := size.huge
+else if table_font_size_option == "Auto"
+    table_font_size := size.auto
 
 
 
@@ -154,9 +154,9 @@ if barstate.islast
 
     // Draw daylight saving time table
     var dst_table = table.new(position = position.top_right, columns = 1, rows = 3, bgcolor = color.new(color.blue, 90), border_color=color.new(color.blue,50), border_width = 1)
-    table.cell(table_id = dst_table, column = 0, row = 0, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = font_size, text = is_daylight_saving ? "Daylight Saving" : "Standard")
-    table.cell(table_id = dst_table, column = 0, row = 1, text_color=color.new(color.white, 30), bgcolor = is_in_session      ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = font_size, text = session_time + " (" + str.tostring(formatted_time) +")")
-    table.cell(table_id = dst_table, column = 0, row = 2, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = font_size, text = dst_start + " - " + dst_end)
+    table.cell(table_id = dst_table, column = 0, row = 0, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = table_font_size, text = is_daylight_saving ? "Daylight Saving" : "Standard")
+    table.cell(table_id = dst_table, column = 0, row = 1, text_color=color.new(color.white, 30), bgcolor = is_in_session      ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = table_font_size, text = session_time + " (" + str.tostring(formatted_time) +")")
+    table.cell(table_id = dst_table, column = 0, row = 2, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = table_font_size, text = dst_start + " - " + dst_end)
 
 
 
@@ -242,3 +242,76 @@ plot_ATH = plot(ATH, color = color.new(color.yellow, 50), title = "ATH Plot", di
 plot_price_low = plot(low, display = display.none, title = "Price Low Plot")
 fill(plot_price_low, plot_ATH, color = color.new(color.yellow, 95), title = "ATH Fill")
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------
+// Note for Friday
+// ---------------
+
+// Check if it's Friday on current bar open time
+is_friday = dayofweek(time_m5, my_timezone) == dayofweek.friday 
+
+// Note message input
+var display_note = input.bool(true, "Display Note")
+
+sentence1 = input.text_area('Hey Yo!\nToday is Friday\nPlan 1 - FIFO trade only\nPlan 2 - No Trade', title = 'Note')
+
+// Sticky Note Settings Input
+tl1 = input.string('middle', title = 'Note Position', options = ['top', 'middle', 'bottom'], inline = '1')
+tl2 = input.string('center', title = ''             , options = ['left', 'center', 'right'], inline = '1')
+note_color = input.color(color(color.rgb(0, 145, 255, 50)), title = 'Note Color')
+
+// Font Input
+note_font_size_option = input.string('Small (default)'  , title = 'Note Font Size', options = ['Auto', 'Huge', 'Large', 'Normal', 'Small (default)', 'Tiny'])
+note_font_color       = input.color (#fbfbfb, title = 'Note Font Color')
+
+var note_font_size = size.small
+
+if note_font_size_option == "Tiny"
+    note_font_size := size.tiny
+else if note_font_size_option == "Normal"
+    note_font_size := size.normal
+else if note_font_size_option == "Large"
+    note_font_size := size.large
+else if note_font_size_option == "Huge"
+    note_font_size := size.huge
+else if note_font_size_option == "Auto"
+    note_font_size := size.auto
+
+
+
+// Table
+var table t1 = table.new(tl1 + '_' + tl2, 1, 10)
+table t2 = table.new('bottom_right', 1, 10)
+
+// Writing rows in the table.
+// If sentence is empty, then row will be excluded from the table
+if barstate.islast and is_friday and display_note
+    table.cell(t1, 0, 0, text = sentence1, bgcolor = note_color, text_color = note_font_color, text_halign = text.align_left, text_size = note_font_size)
+
+
+// Display alert if Note is disabled. Only display on Non-Friday to remind myself to remember to turn it back on.
+if not is_friday and not display_note
+    table.cell(t2, 0, 0, text = 'Note Disabled', bgcolor = color.red, text_color = note_font_color, text_halign = text.align_left, text_size = size.large)
