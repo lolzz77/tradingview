@@ -274,9 +274,11 @@ fill(plot_price_low, plot_ATH, color = color.new(color.yellow, 95), title = "ATH
 is_friday = dayofweek(time_m5, my_timezone) == dayofweek.friday 
 
 // Note message input
-var display_note = input.bool(true, "Display Note")
+var display_friday_note = input.bool(true, "Display Friday Note")
+var force_display_note = input.bool(false, "Force Display Note")
 
-sentence1 = input.text_area('Hey Yo!\nToday is Friday\nPlan 1 - FIFO trade only\nPlan 2 - No Trade', title = 'Note')
+sentence1 = input.text_area('Hey Yo!\nToday is Friday\nPlan 1 - FIFO trade only\nPlan 2 - No Trade', title = 'Friday Note')
+sentence2 = input.text_area('Hey yo, <insert news here>\n1 - You might wanna set expiry earlier\n2 - Only do FIFO trade', title = 'Friday Note')
 
 // Sticky Note Settings Input
 tl1 = input.string('middle', title = 'Note Position', options = ['top', 'middle', 'bottom'], inline = '1')
@@ -308,10 +310,12 @@ table t2 = table.new('bottom_right', 1, 10)
 
 // Writing rows in the table.
 // If sentence is empty, then row will be excluded from the table
-if barstate.islast and is_friday and display_note
+if barstate.islast and is_friday and display_friday_note
     table.cell(t1, 0, 0, text = sentence1, bgcolor = note_color, text_color = note_font_color, text_halign = text.align_left, text_size = note_font_size)
+if barstate.islast and force_display_note
+    table.cell(t1, 0, 0, text = sentence2, bgcolor = note_color, text_color = note_font_color, text_halign = text.align_left, text_size = note_font_size)
 
 
 // Display alert if Note is disabled. Only display on Non-Friday to remind myself to remember to turn it back on.
-if not is_friday and not display_note
+if not is_friday and not display_friday_note
     table.cell(t2, 0, 0, text = 'Note Disabled', bgcolor = color.red, text_color = note_font_color, text_halign = text.align_left, text_size = size.large)
