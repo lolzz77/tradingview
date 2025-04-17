@@ -97,7 +97,11 @@ if symbol == "AUS200"
 if symbol == "UK100" or symbol == "GER40"
     dst_start := "30 Mar 2025"
     dst_end   := "26 Oct 2025"
-    current_symbol_timezone := "GMT+0"
+    // Originally was GMT+0
+    // But i notice the countdown timer is 1 hour late
+    // Hence I try GMT+1, now everything tally
+    // This didn't affect background timing highlight
+    current_symbol_timezone := "GMT+1"
     session_start := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 8, 0, 0)
     session_end   := timestamp(current_symbol_timezone, year(time_m5, current_symbol_timezone), month(time_m5, current_symbol_timezone), dayofmonth(time_m5, current_symbol_timezone), 16, 30, 0)
     // Use "time" dont use "timenow"
