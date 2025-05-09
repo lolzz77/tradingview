@@ -281,7 +281,7 @@ is_friday = dayofweek(time_m5, my_timezone) == dayofweek.friday
 var display_friday_note = input.bool(true, "Display Friday Note")
 var force_display_note = input.bool(false, "Force Display Note")
 
-sentence1 = input.text_area('(Based on last available candle)\nHey Yo!\nToday is Friday\nPlan 1 - FIFO trade only\nPlan 2 - No Trade\n\nFor Gold - Set Expiry, all, prefer 2/3am\nMonday after open market redraw your zone.', title = 'Friday Note')
+sentence1 = input.text_area('(Based on last available candle)\nHey Yo!\nToday is Friday\nPlan 1 - FIFO trade only\nPlan 2 - No Trade\n\nFor Gold - Set Expiry, all, prefer 2am.\nTho cTrader says 6am, but 4am ady no movement.\nMonday after open market redraw your zone.', title = 'Friday Note')
 sentence2 = input.text_area('(Based on last available candle)\nHey yo, <insert news here>\n1 - You might wanna set expiry earlier\n2 - Only do FIFO trade', title = 'Self Note')
 
 // Sticky Note Settings Input
