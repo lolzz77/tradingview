@@ -38,9 +38,9 @@ else if table_font_size_option == "Auto"
 
 
 
-//
+// -----------------
 // Draw Trading Time
-//
+// -----------------
 var bool is_daylight_saving = false
 var dst_start = ""
 var dst_end   = ""
@@ -178,10 +178,10 @@ if barstate.islast
 
 
 
-//
+// -------------------------------------
 // Draw session break
 // It will not draw on H4 and above time
-//
+// -------------------------------------
 var me_sessionBreak = 0
 var draw_session_break = true
 sessionBreak = time_tradingday
@@ -221,12 +221,12 @@ if draw_session_break
 
 
 
-//
+// ---------------------------------------------------------------------
 // Draw ATH
 // I realize that, if M5, the maximum candle is 5k
 // Those ATH that is way before 5k candle, is missed
 // Hence, the best way to draw ATH, is draw based on 12 Months timeframe
-//
+// ---------------------------------------------------------------------
 
 // Draw ATH on Yearly timeframe
 // Request Highest for Yearly chart
@@ -286,9 +286,9 @@ sentence2 = input.text_area('(Based on last available candle)\nHey yo, <insert n
 
 // Sticky Note Settings Input
 tl1 = input.string('middle', title = 'Friday Note Position', options = ['top', 'middle', 'bottom'], inline = '1')
-tl2 = input.string('center', title = ''             , options = ['left', 'center', 'right'], inline = '1')
-tl3 = input.string('middle', title = 'Self Note Position', options = ['top', 'middle', 'bottom'], inline = '1')
-tl4 = input.string('center', title = ''             , options = ['left', 'center', 'right'], inline = '1')
+tl2 = input.string('center', title = ''                    , options = ['left', 'center', 'right'], inline = '1')
+tl3 = input.string('middle', title = 'Self Note Position'  , options = ['top', 'middle', 'bottom'], inline = '1')
+tl4 = input.string('center', title = ''                    , options = ['left', 'center', 'right'], inline = '1')
 note_color = input.color(color(color.rgb(0, 145, 255, 50)), title = 'Note Color')
 
 // Font Input
