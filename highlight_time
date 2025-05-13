@@ -114,7 +114,7 @@ if symbol == "UK100" or symbol == "GER40"
         session_time := "1600-0030"
         is_daylight_saving := false
 
-if symbol == "NAS100" or symbol == "US30" or symbol == "SP500"
+if symbol == "NAS100" or symbol == "US30" or symbol == "DJ30" or symbol == "SP500"
     dst_start := "09 Mar 2025"
     dst_end   := "02 Nov 2025"
     current_symbol_timezone := syminfo.timezone
