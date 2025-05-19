@@ -1,0 +1,236 @@
+//@version=6
+indicator('Highlight Time - Session', overlay = true, max_lines_count = 500)
+
+// Symbols are eg: DJI, NAS, UK100, etc
+symbol = syminfo.ticker
+
+// Logging:
+// Only on last bar & is newly generated bar
+// So that the log is not clogged
+// Ok nvm, when i switch to higher timeframe, it has no log, or waiting for one i dk
+//      if barstate.islast and barstate.isnew       //
+// This one will TRUE every tick.
+if barstate.islast
+    log.info(symbol + " " + timeframe.period)
+
+time_m5 = request.security(syminfo.tickerid, "5", time)
+my_timezone = "Asia/Kuala_Lumpur"
+var current_symbol_timezone = "Asia/Kuala_Lumpur"
+
+// Create input options
+table_font_size_option = input.string(title = "Table Font Size", options = ["Tiny", "Small (default)", "Normal", "Large", "Huge", "Auto"], defval = "Small (default)" )
+var table_font_size = size.small
+
+if table_font_size_option == "Tiny"
+    table_font_size := size.tiny
+else if table_font_size_option == "Normal"
+    table_font_size := size.normal
+else if table_font_size_option == "Large"
+    table_font_size := size.large
+else if table_font_size_option == "Huge"
+    table_font_size := size.huge
+else if table_font_size_option == "Auto"
+    table_font_size := size.auto
+
+
+
+
+
+
+
+// -----------------
+// Draw Trading Time
+// -----------------
+var bool is_daylight_saving = false
+var dst_start = ""
+var dst_end   = ""
+
+// Too lazy to set DST time, cos need keep track
+// Maybe i try change my SOP to see chart whenever, and just set at major SNR
+// I believe these major SNR no need to know when open market. Just put without expiry.
+// Hence, I put range what is DST + nonDST, see whichever has the widest range
+var          London_session_time = "1500-2230"
+var          USsession_time      = "2130-0500"
+const string session_days = ":1234567"
+var london_session = London_session_time + session_days
+var US_session     = USsession_time + session_days
+
+// Check if the current time is within the specified range, in my timezone
+inTimeRange_London_session = math.sign(nz(time(timeframe.period, london_session, my_timezone)))
+inTimeRange_US_session     = math.sign(nz(time(timeframe.period, US_session, my_timezone)))
+
+// Plot the background color if the current time is within the range
+bgcolor(inTimeRange_London_session > 0 ? color.new(color.rgb(103, 58, 183), 90) : na, title = "Lnodon session")
+bgcolor(inTimeRange_US_session     > 0 ? color.new(color.blue, 90) : na, title = "US session")
+
+
+if barstate.islast
+    // Draw daylight saving time table
+    var dst_table = table.new(position = position.top_right, columns = 1, rows = 3, bgcolor = color.new(color.blue, 90), border_color=color.new(color.blue,50), border_width = 1)
+    table.cell(table_id = dst_table, column = 0, row = 0, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = table_font_size, text = is_daylight_saving ? "Daylight Saving" : "Standard")
+    table.cell(table_id = dst_table, column = 0, row = 2, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = table_font_size, text = dst_start + " - " + dst_end)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// -------------------------------------
+// Draw session break
+// It will not draw on H4 and above time
+// -------------------------------------
+var me_sessionBreak = 0
+var draw_session_break = true
+sessionBreak = time_tradingday
+
+var four_hour = "240"
+var daily = "1D"
+var monthly = "1M"
+var weekly = "1W"
+
+if timeframe.period == four_hour
+    draw_session_break := false
+if timeframe.period == daily
+    draw_session_break := false
+if timeframe.period == monthly 
+    draw_session_break := false
+if timeframe.period == weekly
+    draw_session_break := false
+
+if draw_session_break
+    if(sessionBreak!=me_sessionBreak)
+        me_sessionBreak:=sessionBreak
+        // label.new(x=bar_index, y=high, text="New Day")
+        // no need bah i guess..
+        // line.new(bar_index, low, bar_index, high, style = line.style_dashed)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------------------------------------------------------------
+// Draw ATH
+// I realize that, if M5, the maximum candle is 5k
+// Those ATH that is way before 5k candle, is missed
+// Hence, the best way to draw ATH, is draw based on 12 Months timeframe
+// ---------------------------------------------------------------------
+
+// Draw ATH on Yearly timeframe
+// Request Highest for Yearly chart
+var ATH = request.security(syminfo.tickerid, "12M", high)
+ATH := math.max(high, ATH)
+
+// But then i realize, if you on weekly chart, the value will be "NA"
+// Not sure what happened but i guess, can put check if "NA", then draw 
+// ATH based on current timeframe
+if na(ATH)
+    log.info("ATH is NA")
+    ATH := high
+    ATH := math.max(high, ATH)
+
+// Plot the ATH on the M5 chart
+plot_ATH = plot(ATH, color = color.new(color.yellow, 50), title = "ATH Plot", display = display.pane)
+plot_price_low = plot(low, display = display.none, title = "Price Low Plot")
+fill(plot_price_low, plot_ATH, color = color.new(color.yellow, 95), title = "ATH Fill")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------
+// Note for Friday
+// ---------------
+
+// Check if it's Friday on current bar open time
+is_friday = dayofweek(time_m5, my_timezone) == dayofweek.friday 
+
+// Note message input
+var display_friday_note = input.bool(true, "Display Friday Note")
+var force_display_note = input.bool(false, "Force Display Note")
+
+sentence1 = input.text_area('(Based on last available candle)\nHey Yo!\nToday is Friday\nRmb to close all ur positions', title = 'Friday Note')
+sentence2 = input.text_area('(Based on last available candle)\nHey yo, <insert news here>\n1 - You might wanna set expiry earlier\n2 - Only do FIFO trade', title = 'Self Note')
+
+// Sticky Note Settings Input
+tl1 = input.string('middle', title = 'Friday Note Position', options = ['top', 'middle', 'bottom'], inline = '1')
+tl2 = input.string('center', title = ''                    , options = ['left', 'center', 'right'], inline = '1')
+tl3 = input.string('middle', title = 'Self Note Position'  , options = ['top', 'middle', 'bottom'], inline = '1')
+tl4 = input.string('center', title = ''                    , options = ['left', 'center', 'right'], inline = '1')
+note_color = input.color(color(color.rgb(0, 145, 255, 50)), title = 'Note Color')
+
+// Font Input
+note_font_size_option = input.string('Small (default)'  , title = 'Note Font Size', options = ['Auto', 'Huge', 'Large', 'Normal', 'Small (default)', 'Tiny'])
+note_font_color       = input.color (#fbfbfb, title = 'Note Font Color')
+
+var note_font_size = size.small
+
+if note_font_size_option == "Tiny"
+    note_font_size := size.tiny
+else if note_font_size_option == "Normal"
+    note_font_size := size.normal
+else if note_font_size_option == "Large"
+    note_font_size := size.large
+else if note_font_size_option == "Huge"
+    note_font_size := size.huge
+else if note_font_size_option == "Auto"
+    note_font_size := size.auto
+
+
+
+// Table
+table t1 = table.new(tl1 + '_' + tl2, 1, 10)
+table t2 = table.new(tl3 + '_' + tl4, 1, 10)
+table t3 = table.new('bottom_right', 1, 10)
+
+// Writing rows in the table.
+// If sentence is empty, then row will be excluded from the table
+if barstate.islast and is_friday and display_friday_note
+    table.cell(t1, 0, 0, text = sentence1, bgcolor = note_color, text_color = note_font_color, text_halign = text.align_left, text_size = note_font_size)
+if barstate.islast and force_display_note
+    table.cell(t2, 0, 0, text = sentence2, bgcolor = note_color, text_color = note_font_color, text_halign = text.align_left, text_size = note_font_size)
+
+
+// Display alert if Note is disabled.
+if not display_friday_note
+    table.cell(t3, 0, 0, text = 'Friday Note Disabled', bgcolor = color.red, text_color = note_font_color, text_halign = text.align_left, text_size = size.large)
