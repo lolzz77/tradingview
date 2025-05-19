@@ -1,5 +1,5 @@
 //@version=6
-indicator('Highlight Time', overlay = true, max_lines_count = 500)
+indicator('Highlight Time - Individual', overlay = true, max_lines_count = 500)
 
 // Symbols are eg: DJI, NAS, UK100, etc
 symbol = syminfo.ticker
