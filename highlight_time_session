@@ -234,3 +234,29 @@ if barstate.islast and force_display_note
 // Display alert if Note is disabled.
 if not display_friday_note
     table.cell(t3, 0, 0, text = 'Friday Note Disabled', bgcolor = color.red, text_color = note_font_color, text_halign = text.align_left, text_size = size.large)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ---------------
+// Calculate Daily ATR & display beside the indicator name
+// ---------------
+length = input(14, title = 'ATR Length')
+daily_atr = request.security(syminfo.tickerid, 'D', ta.atr(length))
+plot(daily_atr, color = color.new(color.red, 0))
