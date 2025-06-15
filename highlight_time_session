@@ -259,4 +259,24 @@ if not display_friday_note
 // ---------------
 length = input(14, title = 'ATR Length')
 daily_atr = request.security(syminfo.tickerid, 'D', ta.atr(length))
+// I tested that, for XAUUSD, and GBPJPY, for 1 pip change, is always syminfo.mintick*10
+pip_size_for_1_price_change = syminfo.mintick * 10
+pip_changes_for_daily_atr = int(daily_atr / pip_size_for_1_price_change)
+pip_square_root_24 = pip_changes_for_daily_atr / math.sqrt(24)
+
+// Get today's high and low from the daily timeframe
+todays_high = request.security(syminfo.tickerid, "D", high)
+todays_low = request.security(syminfo.tickerid, "D", low)
+// Calculate today's range
+today_range = todays_high - todays_low
+// ATR moved percentage
+atr_moved_today_percentage = (today_range / daily_atr) * 100
+
+// PLot ATR, which is the price changes
 plot(daily_atr, color = color.new(color.red, 0))
+// Plot pip size for the ATR
+plot(pip_changes_for_daily_atr, color = color.new(color.red, 0))
+// Plot square-root 24 ATR pips. This is chatgpt told me H1 timeframe trader use Daily ATR  / (square-root 24)
+plot(pip_square_root_24, color = color.new(color.red, 0))
+// Plot Today moved ATR %
+plot(atr_moved_today_percentage, format = format.percent, color = color.new(color.red, 0))
