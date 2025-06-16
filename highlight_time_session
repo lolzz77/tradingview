@@ -308,6 +308,6 @@ else
     array.push(myQueue, atr_moved_today_percentage)  // Add new value at the tail
 
 if barstate.islast
-    for i = 0 to queueSize - 1
+    for i = 0 to array.size(myQueue) - 1
         table.cell(myTable, 0, i, str.tostring(array.get(myQueue, i)), text_color = color.new(color.white, 70))
 
