@@ -64,11 +64,11 @@ bgcolor(inTimeRange_London_session > 0 ? color.new(color.rgb(103, 58, 183), 90) 
 bgcolor(inTimeRange_US_session     > 0 ? color.new(color.blue, 90) : na, title = "US session")
 
 
-if barstate.islast
-    // Draw daylight saving time table
-    var dst_table = table.new(position = position.top_right, columns = 1, rows = 3, bgcolor = color.new(color.blue, 90), border_color=color.new(color.blue,50), border_width = 1)
-    table.cell(table_id = dst_table, column = 0, row = 0, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = table_font_size, text = is_daylight_saving ? "Daylight Saving" : "Standard")
-    table.cell(table_id = dst_table, column = 0, row = 2, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = table_font_size, text = dst_start + " - " + dst_end)
+//if barstate.islast
+//    // Draw daylight saving time table
+//    var dst_table = table.new(position = position.top_right, columns = 1, rows = 3, bgcolor = color.new(color.blue, 90), border_color=color.new(color.blue,50), border_width = 1)
+//    table.cell(table_id = dst_table, column = 0, row = 0, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = table_font_size, text = is_daylight_saving ? "Daylight Saving" : "Standard")
+//    table.cell(table_id = dst_table, column = 0, row = 2, text_color=color.new(color.white, 30), bgcolor = is_daylight_saving ? color.new(color.purple, 80) : color.new(color.blue, 100), text_size = table_font_size, text = dst_start + " - " + dst_end)
 
 
 
@@ -270,8 +270,11 @@ todays_low = request.security(syminfo.tickerid, "D", low)
 // Calculate today's range
 today_range = todays_high - todays_low
 // ATR moved percentage
-atr_moved_today_percentage = (today_range / daily_atr) * 100
+atr_moved_today_percentage = math.round((today_range / daily_atr) * 100, 2)
 today_range_in_pip = int(today_range / pip_size_for_1_price_change)
+
+
+
 
 // Plot ATR, which is the price changes
 plot(daily_atr, display = display.status_line, color = color.new(color.red, 100))
@@ -283,3 +286,28 @@ plot(pip_square_root_24, display = display.status_line, color = color.new(color.
 plot(atr_moved_today_percentage, display = display.status_line, format = format.percent, color = color.new(color.red, 100))
 // Plot today moved ATR pip value
 plot(today_range_in_pip, display = display.status_line, color = color.new(color.red, 100))
+
+
+
+// Create a table to show last 14 days ATR moved %
+var myTable = table.new(position.top_right, 1, 14)
+var myQueue = array.new_float(0)  // Initialize an empty array
+
+// ATR is 14 days, so I display 14 days moved ATR
+queueSize = 14  // Define the max queue size
+
+// no duplicates, make sure is "push to array only next day" you know what 7 im saying
+// Because if not, if you use H1 Timeframe, it will ahve 24 same values ATR moved % pushed to queue
+if array.size(myQueue) != 0
+    lastValue = array.last(myQueue)
+    if atr_moved_today_percentage != lastValue
+        array.push(myQueue, atr_moved_today_percentage)  // Add new value at the tail
+        if array.size(myQueue) > queueSize
+            array.shift(myQueue)  // Remove the oldest element
+else 
+    array.push(myQueue, atr_moved_today_percentage)  // Add new value at the tail
+
+if barstate.islast
+    for i = 0 to queueSize - 1
+        table.cell(myTable, 0, i, str.tostring(array.get(myQueue, i)), text_color = color.new(color.white, 70))
+
