@@ -271,8 +271,9 @@ todays_low = request.security(syminfo.tickerid, "D", low)
 today_range = todays_high - todays_low
 // ATR moved percentage
 atr_moved_today_percentage = (today_range / daily_atr) * 100
+today_range_in_pip = int(today_range / pip_size_for_1_price_change)
 
-// PLot ATR, which is the price changes
+// Plot ATR, which is the price changes
 plot(daily_atr, color = color.new(color.red, 0))
 // Plot pip size for the ATR
 plot(pip_changes_for_daily_atr, color = color.new(color.red, 0))
@@ -280,3 +281,5 @@ plot(pip_changes_for_daily_atr, color = color.new(color.red, 0))
 plot(pip_square_root_24, color = color.new(color.red, 0))
 // Plot Today moved ATR %
 plot(atr_moved_today_percentage, format = format.percent, color = color.new(color.red, 0))
+// Plot today moved ATR pip value
+plot(today_range_in_pip, color = color.new(color.red, 0))
