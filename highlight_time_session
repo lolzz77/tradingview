@@ -300,12 +300,12 @@ queueSize = 14  // Define the max queue size
 // Because if not, if you use H1 Timeframe, it will ahve 24 same values ATR moved % pushed to queue
 if array.size(myQueue) != 0
     lastValue = array.last(myQueue)
-    if atr_moved_today_percentage != lastValue
-        array.push(myQueue, atr_moved_today_percentage)  // Add new value at the tail
+    if today_range_in_pip != lastValue
+        array.push(myQueue, today_range_in_pip)  // Add new value at the tail
         if array.size(myQueue) > queueSize
             array.shift(myQueue)  // Remove the oldest element
 else 
-    array.push(myQueue, atr_moved_today_percentage)  // Add new value at the tail
+    array.push(myQueue, today_range_in_pip)  // Add new value at the tail
 
 if barstate.islast
     for i = 0 to array.size(myQueue) - 1
