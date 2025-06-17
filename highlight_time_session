@@ -262,6 +262,9 @@ length = input(14, title = 'ATR Length')
 // The value shown is yesterday's ATR
 // This is expected, if you go to H1, the script must arrive at the
 // end of the day then only able to calculate the ATR for the day
+// If you want to see today's ATR, then move your cursor to the last candle
+// Last candle is the "last candle of the day available" hence it only able
+// to calculate today's ATR after reaching today's last candle
 daily_atr = request.security(syminfo.tickerid, 'D', ta.atr(length))
 // I tested that, for XAUUSD, and GBPJPY, for 1 pip change, is always syminfo.mintick*10
 pip_size_for_1_price_change = syminfo.mintick * 10
@@ -273,13 +276,12 @@ var float todays_high = na
 var float todays_low = na
 var int day_of_week_me = 0
 var int adjusted_dayofweek = 0
-var queue_week_of_day = array.new_int(0)
+var int previous_day_of_week = 0
 if session.isfirstbar
     todays_high     := request.security(syminfo.tickerid, "D", high)
     day_of_week_me  := request.security(syminfo.tickerid, timeframe.period, dayofweek(time, "GMT+8"))
     // Becos niama caohai dayofweek, sunday starts at 1, niama, i want monday starts at 1
     adjusted_dayofweek := (day_of_week_me - 2 + 7) % 7 + 1
-    array.push(queue_week_of_day, adjusted_dayofweek)
     todays_low      := request.security(syminfo.tickerid, "D", low)
 
 // Calculate
@@ -294,14 +296,6 @@ if not na(todays_high) and not na(todays_low)
     todays_high := na
     todays_low := na
 
-// ATR is 14 days, so I display 14 days moved ATR
-var queueSize = 14
-// Remove the oldest element
-if array.size(queue_week_of_day) > queueSize
-    array.shift(queue_week_of_day)
-if array.size(queue_moved_pips_for_the_day) > queueSize
-    array.shift(queue_moved_pips_for_the_day)
-
 // Plot ATR, which is the price changes
 plot(daily_atr, display = display.status_line, color = color.new(color.red, 100))
 // Plot pip size for the ATR
@@ -313,7 +307,22 @@ plot(atr_moved_today_percentage, display = display.status_line, format = format.
 // Plot today moved ATR pip value
 plot(today_range_in_pip, display = display.status_line, color = color.new(color.red, 100))
 // Plot dayofweek
-plot(adjusted_dayofweek, display = display.status_line, color = color.new(color.red, 100))
+plot(previous_day_of_week, display = display.status_line, color = color.new(color.red, 100))
+
+var queue_week_of_day = array.new_int(0)
+// Since my daily ATR is delayed, that is, showing yesterday's ATR
+// Then my dayofweek shall comply too
+if session.islastbar
+    previous_day_of_week := adjusted_dayofweek
+    array.push(queue_week_of_day, previous_day_of_week)
+
+// ATR is 14 days, so I display 14 days moved ATR
+var queueSize = 14
+// Remove the oldest element
+if array.size(queue_week_of_day) > queueSize
+    array.shift(queue_week_of_day)
+if array.size(queue_moved_pips_for_the_day) > queueSize
+    array.shift(queue_moved_pips_for_the_day)
 
 // Create a table to show last 14 days ATR moved %
 // Positoin, col, row
@@ -323,4 +332,3 @@ if barstate.islast
         table.cell(moved_atr_pips_table, 0, i, str.tostring(array.get(queue_moved_pips_for_the_day, i)), text_color = color.new(color.white, 70))
     for i = 0 to array.size(queue_moved_pips_for_the_day) - 1
         table.cell(moved_atr_pips_table, 1, i, str.tostring(array.get(queue_week_of_day, i)), text_color = color.new(color.white, 70))
-
