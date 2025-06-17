@@ -265,24 +265,38 @@ pip_changes_for_daily_atr = int(daily_atr / pip_size_for_1_price_change)
 pip_square_root_24 = pip_changes_for_daily_atr / math.sqrt(24)
 
 // Get today's high and low from the daily timeframe
-// There is one issue with This, which i think nothing you can do
-// When you go Daily and then go to H1 see the session break
-// You will reazlize it's confusing, the session break can cover 2 days (within 24 hours)
-// This is becos, for Gold, the session break, happened on 12pm on the day.
-// Which means in Daily TF, that one candle when you go to H1, it covers 2 days.
-// 很乱, but what can u do?
-// This results in a way that, your data is showing yesterday's ATR high and low.
-todays_high = request.security(syminfo.tickerid, "D", high)
-todays_low = request.security(syminfo.tickerid, "D", low)
+var float todays_high = na
+var float todays_low = na
+var int day_of_week_me = 0
+var int adjusted_dayofweek = 0
+var queue_week_of_day = array.new_int(0)
+if session.isfirstbar
+    todays_high     := request.security(syminfo.tickerid, "D", high)
+    day_of_week_me  := request.security(syminfo.tickerid, timeframe.period, dayofweek(time, "GMT+8"))
+    // Becos niama caohai dayofweek, sunday starts at 1, niama, i want monday starts at 1
+    adjusted_dayofweek := (day_of_week_me - 2 + 7) % 7 + 1
+    array.push(queue_week_of_day, adjusted_dayofweek)
+    todays_low      := request.security(syminfo.tickerid, "D", low)
 
-// Calculate today's range
-today_range = todays_high - todays_low
-// ATR moved percentage
-atr_moved_today_percentage = math.round((today_range / daily_atr) * 100, 2)
-today_range_in_pip = int(today_range / pip_size_for_1_price_change)
+// Calculate
+var float atr_moved_today_percentage = 0
+var int today_range_in_pip = 0
+var queue_moved_pips_for_the_day = array.new_float(0)
+if not na(todays_high) and not na(todays_low)
+    today_range = todays_high - todays_low
+    atr_moved_today_percentage := math.round((today_range / daily_atr) * 100, 2)
+    today_range_in_pip := int(today_range / pip_size_for_1_price_change)
+    array.push(queue_moved_pips_for_the_day, today_range_in_pip)
+    todays_high := na
+    todays_low := na
 
-
-
+// ATR is 14 days, so I display 14 days moved ATR
+var queueSize = 14
+// Remove the oldest element
+if array.size(queue_week_of_day) > queueSize
+    array.shift(queue_week_of_day)
+if array.size(queue_moved_pips_for_the_day) > queueSize
+    array.shift(queue_moved_pips_for_the_day)
 
 // Plot ATR, which is the price changes
 plot(daily_atr, display = display.status_line, color = color.new(color.red, 100))
@@ -294,44 +308,15 @@ plot(pip_square_root_24, display = display.status_line, color = color.new(color.
 plot(atr_moved_today_percentage, display = display.status_line, format = format.percent, color = color.new(color.red, 100))
 // Plot today moved ATR pip value
 plot(today_range_in_pip, display = display.status_line, color = color.new(color.red, 100))
-
-
+// Plot dayofweek
+plot(adjusted_dayofweek, display = display.status_line, color = color.new(color.red, 100))
 
 // Create a table to show last 14 days ATR moved %
-var myTable = table.new(position.top_right, 2, 14)
-var myQueue = array.new_float(0)  // Initialize an empty array
-var myQueue_days = array.new_int(0)
-
-// ATR is 14 days, so I display 14 days moved ATR
-queueSize = 14  // Define the max queue size
-
-// By right, Monday should show 1, and so on
-// For Gold, becos session breakk happens on 12pm, hence sometimes it is a bit complicated
-// For GBPJPY, u will feel normal
-daily_dayofweek = request.security(syminfo.tickerid, "D", dayofweek)
-if array.size(myQueue_days) != 0
-    lastValue = array.last(myQueue_days)
-    if daily_dayofweek != lastValue
-        array.push(myQueue_days, daily_dayofweek)  // Add new value at the tail
-        if array.size(myQueue_days) > queueSize
-            array.shift(myQueue_days)  // Remove the oldest element
-else
-    array.push(myQueue_days, daily_dayofweek)  // Add new value at the tail
-
-// no duplicates, make sure is "push to array only next day" you know what 7 im saying
-// Because if not, if you use H1 Timeframe, it will ahve 24 same values ATR moved % pushed to queue
-if array.size(myQueue) != 0
-    lastValue = array.last(myQueue)
-    if today_range_in_pip != lastValue
-        array.push(myQueue, today_range_in_pip)  // Add new value at the tail
-        if array.size(myQueue) > queueSize
-            array.shift(myQueue)  // Remove the oldest element
-else 
-    array.push(myQueue, today_range_in_pip)  // Add new value at the tail
-
+// Positoin, col, row
+var moved_atr_pips_table = table.new(position.top_right, 2, 14)
 if barstate.islast
-    for i = 0 to array.size(myQueue) - 1
-        table.cell(myTable, 0, i, str.tostring(array.get(myQueue, i)), text_color = color.new(color.white, 70))
-    for i = 0 to array.size(myQueue) - 1
-        table.cell(myTable, 1, i, str.tostring(array.get(myQueue_days, i)), text_color = color.new(color.white, 70))
+    for i = 0 to array.size(queue_moved_pips_for_the_day) - 1
+        table.cell(moved_atr_pips_table, 0, i, str.tostring(array.get(queue_moved_pips_for_the_day, i)), text_color = color.new(color.white, 70))
+    for i = 0 to array.size(queue_moved_pips_for_the_day) - 1
+        table.cell(moved_atr_pips_table, 1, i, str.tostring(array.get(queue_week_of_day, i)), text_color = color.new(color.white, 70))
 
