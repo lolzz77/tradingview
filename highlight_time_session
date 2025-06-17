@@ -258,6 +258,10 @@ if not display_friday_note
 // Calculate Daily ATR & display beside the indicator name
 // ---------------
 length = input(14, title = 'ATR Length')
+// Known issue, the ATR displayed when you go to H1, is delayed
+// The value shown is yesterday's ATR
+// This is expected, if you go to H1, the script must arrive at the
+// end of the day then only able to calculate the ATR for the day
 daily_atr = request.security(syminfo.tickerid, 'D', ta.atr(length))
 // I tested that, for XAUUSD, and GBPJPY, for 1 pip change, is always syminfo.mintick*10
 pip_size_for_1_price_change = syminfo.mintick * 10
