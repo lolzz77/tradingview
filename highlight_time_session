@@ -268,6 +268,7 @@ pip_square_root_24 = pip_changes_for_daily_atr / math.sqrt(24)
 // There is one issue with This, which i think nothing you can do
 // When you go Daily and then go to H1 see the session break
 // You will reazlize it's confusing, the session break can cover 2 days (within 24 hours)
+// This is becos, for Gold, the session break, happened on 12pm on the day.
 // Which means in Daily TF, that one candle when you go to H1, it covers 2 days.
 // 很乱, but what can u do?
 // This results in a way that, your data is showing yesterday's ATR high and low.
@@ -297,11 +298,25 @@ plot(today_range_in_pip, display = display.status_line, color = color.new(color.
 
 
 // Create a table to show last 14 days ATR moved %
-var myTable = table.new(position.top_right, 1, 14)
+var myTable = table.new(position.top_right, 2, 14)
 var myQueue = array.new_float(0)  // Initialize an empty array
+var myQueue_days = array.new_int(0)
 
 // ATR is 14 days, so I display 14 days moved ATR
 queueSize = 14  // Define the max queue size
+
+// By right, Monday should show 1, and so on
+// For Gold, becos session breakk happens on 12pm, hence sometimes it is a bit complicated
+// For GBPJPY, u will feel normal
+daily_dayofweek = request.security(syminfo.tickerid, "D", dayofweek)
+if array.size(myQueue_days) != 0
+    lastValue = array.last(myQueue_days)
+    if daily_dayofweek != lastValue
+        array.push(myQueue_days, daily_dayofweek)  // Add new value at the tail
+        if array.size(myQueue_days) > queueSize
+            array.shift(myQueue_days)  // Remove the oldest element
+else
+    array.push(myQueue_days, daily_dayofweek)  // Add new value at the tail
 
 // no duplicates, make sure is "push to array only next day" you know what 7 im saying
 // Because if not, if you use H1 Timeframe, it will ahve 24 same values ATR moved % pushed to queue
@@ -317,4 +332,6 @@ else
 if barstate.islast
     for i = 0 to array.size(myQueue) - 1
         table.cell(myTable, 0, i, str.tostring(array.get(myQueue, i)), text_color = color.new(color.white, 70))
+    for i = 0 to array.size(myQueue) - 1
+        table.cell(myTable, 1, i, str.tostring(array.get(myQueue_days, i)), text_color = color.new(color.white, 70))
 
