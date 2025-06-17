@@ -265,8 +265,15 @@ pip_changes_for_daily_atr = int(daily_atr / pip_size_for_1_price_change)
 pip_square_root_24 = pip_changes_for_daily_atr / math.sqrt(24)
 
 // Get today's high and low from the daily timeframe
+// There is one issue with This, which i think nothing you can do
+// When you go Daily and then go to H1 see the session break
+// You will reazlize it's confusing, the session break can cover 2 days (within 24 hours)
+// Which means in Daily TF, that one candle when you go to H1, it covers 2 days.
+// 很乱, but what can u do?
+// This results in a way that, your data is showing yesterday's ATR high and low.
 todays_high = request.security(syminfo.tickerid, "D", high)
 todays_low = request.security(syminfo.tickerid, "D", low)
+
 // Calculate today's range
 today_range = todays_high - todays_low
 // ATR moved percentage
