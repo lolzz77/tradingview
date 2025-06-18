@@ -277,7 +277,8 @@ var float todays_low = na
 var int day_of_week_me = 0
 var int adjusted_dayofweek = 0
 var int previous_day_of_week = 0
-if session.isfirstbar
+// I put barstate.islast, so that, the last bar shows today's running ATR value
+if session.isfirstbar or barstate.islast
     todays_high     := request.security(syminfo.tickerid, "D", high)
     day_of_week_me  := request.security(syminfo.tickerid, timeframe.period, dayofweek(time, "GMT+8"))
     // Becos niama caohai dayofweek, sunday starts at 1, niama, i want monday starts at 1
