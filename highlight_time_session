@@ -281,13 +281,14 @@ var int previous_day_of_week = 0
 if session.isfirstbar or barstate.islast
     todays_high     := request.security(syminfo.tickerid, "D", high)
     day_of_week_me  := request.security(syminfo.tickerid, timeframe.period, dayofweek(time, "GMT+8"))
-    // Becos niama caohai dayofweek, sunday starts at 1, niama, i want monday starts at 1
-    adjusted_dayofweek := (day_of_week_me - 2 + 7) % 7 + 1
+    // if is lastbar, dont update, i need the old value to show is today's day
+    if not barstate.islast
+        // Becos niama caohai dayofweek, sunday starts at 1, niama, i want monday starts at 1
+        adjusted_dayofweek := (day_of_week_me - 2 + 7) % 7 + 1
     todays_low      := request.security(syminfo.tickerid, "D", low)
 
 // if is last bar, show today's running ATR, hence, pls show correct day
 if barstate.islast
-    adjusted_dayofweek := (day_of_week_me - 3 + 7) % 7 + 1
     previous_day_of_week := adjusted_dayofweek
 
 // Calculate
