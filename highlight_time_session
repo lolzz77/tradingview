@@ -256,6 +256,12 @@ if barstate.islast and force_display_note
 
 // ---------------
 // Calculate Daily ATR & display beside the indicator name
+// Known issue, the last bar will show today's ATR
+// But if you stay on chart for few hours, then you see
+// duplicated today's ATR printed on chart
+// I think the only way is to readd your indicator
+// It's hard to "fix" it, cos it drew on chart, modifying
+// your variable doesnt not fix the printed value
 // ---------------
 length = input(14, title = 'ATR Length')
 // Known issue, the ATR displayed when you go to H1, is delayed
