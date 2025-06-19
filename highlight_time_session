@@ -260,7 +260,7 @@ if barstate.islast and force_display_note
 // 1. the last bar will show today's ATR
 // But if you stay on chart for few hours, then you see
 // duplicated today's ATR printed on chart
-// I think the only way is to readd your indicator
+// I think the only way is to re-visit the chart to refresh the indicator
 // It's hard to "fix" it, cos it drew on chart, modifying
 // your variable doesnt not fix the printed value
 // 2. When barstate.lastbar and sessions.isfirstbar clash
