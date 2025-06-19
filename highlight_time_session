@@ -256,12 +256,16 @@ if barstate.islast and force_display_note
 
 // ---------------
 // Calculate Daily ATR & display beside the indicator name
-// Known issue, the last bar will show today's ATR
+// Known issue:
+// 1. the last bar will show today's ATR
 // But if you stay on chart for few hours, then you see
 // duplicated today's ATR printed on chart
 // I think the only way is to readd your indicator
 // It's hard to "fix" it, cos it drew on chart, modifying
 // your variable doesnt not fix the printed value
+// 2. When barstate.lastbar and sessions.isfirstbar clash
+// The session.isfirstbar will take the priority
+// You need wait 2nd bar to see the today's ATR
 // ---------------
 length = input(14, title = 'ATR Length')
 // Known issue, the ATR displayed when you go to H1, is delayed
@@ -327,8 +331,11 @@ var queue_week_of_day = array.new_int(0)
 // Then my dayofweek shall comply too
 // i put barstate.islast, the lastbar shall disply today's running ATR day
 if session.islastbar or barstate.islast
-    previous_day_of_week := adjusted_dayofweek
-    array.push(queue_week_of_day, previous_day_of_week)
+    // If your last bar also same as session.isfirstbar, then your table will
+    // print extra day, Hence, put this checking to avoid that
+    if not session.isfirstbar
+        previous_day_of_week := adjusted_dayofweek
+        array.push(queue_week_of_day, previous_day_of_week)
 
 // ATR is 14 days, so I display 14 days moved ATR
 var queueSize = 14
