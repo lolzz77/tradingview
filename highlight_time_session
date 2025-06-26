@@ -317,7 +317,8 @@ if not na(todays_high) and not na(todays_low)
     todays_low := na
 
 // Plot ATR, which is the price changes
-plot(daily_atr, display = display.status_line, color = color.new(color.red, 100), title = "Daily ATR")
+// Let it no display by default
+plot(daily_atr, display = display.none, color = color.new(color.red, 100), title = "Daily ATR")
 // Plot pip size for the ATR
 plot(pip_changes_for_daily_atr, display = display.status_line, color = color.new(color.red, 100), title = "Daily ATR (pips)")
 // Plot square-root 24 ATR pips. This is chatgpt told me H1 timeframe trader use Daily ATR  / (square-root 24)
