@@ -266,6 +266,8 @@ if barstate.islast and force_display_note
 // 2. When barstate.lastbar and sessions.isfirstbar clash
 // The session.isfirstbar will take the priority
 // You need wait 2nd bar to see the today's ATR
+// This is expected, do u really need faster know today's ATR on first bar? lol
+// No need mah right, 2nd bar then show today's ATR also ok mah
 // ---------------
 length = input(14, title = 'ATR Length')
 // Known issue, the ATR displayed when you go to H1, is delayed
@@ -299,7 +301,8 @@ if session.isfirstbar or barstate.islast
 
 // if is last bar, show today's running ATR, hence, pls show correct day
 if barstate.islast
-    previous_day_of_week := adjusted_dayofweek
+    if not session.isfirstbar
+        previous_day_of_week := adjusted_dayofweek
 
 // Calculate
 var float atr_moved_today_percentage = 0
@@ -314,17 +317,17 @@ if not na(todays_high) and not na(todays_low)
     todays_low := na
 
 // Plot ATR, which is the price changes
-plot(daily_atr, display = display.status_line, color = color.new(color.red, 100))
+plot(daily_atr, display = display.status_line, color = color.new(color.red, 100), title = "Daily ATR")
 // Plot pip size for the ATR
-plot(pip_changes_for_daily_atr, display = display.status_line, color = color.new(color.red, 100))
+plot(pip_changes_for_daily_atr, display = display.status_line, color = color.new(color.red, 100), title = "Daily ATR (pips)")
 // Plot square-root 24 ATR pips. This is chatgpt told me H1 timeframe trader use Daily ATR  / (square-root 24)
-plot(pip_square_root_24, display = display.status_line, color = color.new(color.red, 100))
+plot(pip_square_root_24, display = display.status_line, color = color.new(color.red, 100), title = "Recommended TP/SL")
 // Plot Today moved ATR %
-plot(atr_moved_today_percentage, display = display.status_line, format = format.percent, color = color.new(color.red, 100))
+plot(atr_moved_today_percentage, display = display.status_line, format = format.percent, color = color.new(color.red, 100), title = "Today moved ATR (%)")
 // Plot today moved ATR pip value
-plot(today_range_in_pip, display = display.status_line, color = color.new(color.red, 100))
+plot(today_range_in_pip, display = display.status_line, color = color.new(color.red, 100), title = "Today moved ATR (pips)")
 // Plot dayofweek
-plot(previous_day_of_week, display = display.status_line, color = color.new(color.red, 100))
+plot(previous_day_of_week, display = display.status_line, color = color.new(color.red, 100), title = "Day of Week")
 
 var queue_week_of_day = array.new_int(0)
 // Since my daily ATR is delayed, that is, showing yesterday's ATR
