@@ -60,8 +60,9 @@ inTimeRange_London_session = math.sign(nz(time(timeframe.period, london_session,
 inTimeRange_US_session     = math.sign(nz(time(timeframe.period, US_session, my_timezone)))
 
 // Plot the background color if the current time is within the range
-bgcolor(inTimeRange_London_session > 0 ? color.new(color.rgb(103, 58, 183), 90) : na, title = "Lnodon session")
-bgcolor(inTimeRange_US_session     > 0 ? color.new(color.blue, 90) : na, title = "US session")
+// Let's disable for default
+bgcolor(inTimeRange_London_session > 0 ? color.new(color.rgb(103, 58, 183), 90) : na, title = "London session", display = display.none)
+bgcolor(inTimeRange_US_session     > 0 ? color.new(color.blue, 90) : na, title = "US session", display = display.none)
 
 
 //if barstate.islast
@@ -281,8 +282,11 @@ daily_atr = request.security(syminfo.tickerid, 'D', ta.atr(length))
 // I tested that, for XAUUSD, and GBPJPY, for 1 pip change, is always syminfo.mintick*10
 pip_size_for_1_price_change = syminfo.mintick * 10
 pip_changes_for_daily_atr = int(daily_atr / pip_size_for_1_price_change)
-pip_square_root_24 = pip_changes_for_daily_atr / math.sqrt(24)
-
+pip_square_root_288 = pip_changes_for_daily_atr / math.sqrt(288) // For M5 tf
+pip_square_root_96  = pip_changes_for_daily_atr / math.sqrt(96)  // For M15 tf
+pip_square_root_48  = pip_changes_for_daily_atr / math.sqrt(48)  // For M30 tf
+pip_square_root_24  = pip_changes_for_daily_atr / math.sqrt(24)  // For H1 tf
+pip_square_root_6   = pip_changes_for_daily_atr / math.sqrt(6)   // For H4 tf
 // Get today's high and low from the daily timeframe
 var float todays_high = na
 var float todays_low = na
@@ -321,14 +325,18 @@ if not na(todays_high) and not na(todays_low)
 plot(daily_atr, display = display.none, color = color.new(color.red, 100), title = "Daily ATR")
 // Plot pip size for the ATR
 plot(pip_changes_for_daily_atr, display = display.status_line, color = color.new(color.red, 100), title = "Daily ATR (pips)")
-// Plot square-root 24 ATR pips. This is chatgpt told me H1 timeframe trader use Daily ATR  / (square-root 24)
-plot(pip_square_root_24, display = display.status_line, color = color.new(color.red, 100), title = "Recommended TP/SL")
 // Plot Today moved ATR %
 plot(atr_moved_today_percentage, display = display.status_line, format = format.percent, color = color.new(color.red, 100), title = "Today moved ATR (%)")
 // Plot today moved ATR pip value
 plot(today_range_in_pip, display = display.status_line, color = color.new(color.red, 100), title = "Today moved ATR (pips)")
 // Plot dayofweek
 plot(previous_day_of_week, display = display.status_line, color = color.new(color.red, 100), title = "Day of Week")
+// Plot square-root 24 ATR pips. This is chatgpt told me H1 timeframe trader use Daily ATR  / (square-root 24)
+// plot(pip_square_root_288, display = display.status_line, color = color.new(color.red, 100), title = "Recommended TP/SL for M5")
+// plot(pip_square_root_96, display = display.status_line, color  = color.new(color.red, 100), title = "Recommended TP/SL for M15")
+// plot(pip_square_root_48, display = display.status_line, color  = color.new(color.red, 100), title = "Recommended TP/SL for M30")
+plot(pip_square_root_24, display = display.status_line, color  = color.new(color.red, 100), title = "Recommended TP/SL for H1")
+plot(pip_square_root_6, display = display.status_line, color   = color.new(color.red, 100), title = "Recommended TP/SL for H4")
 
 var queue_week_of_day = array.new_int(0)
 // Since my daily ATR is delayed, that is, showing yesterday's ATR
