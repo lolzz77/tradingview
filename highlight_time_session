@@ -325,10 +325,10 @@ if not na(todays_high) and not na(todays_low)
 plot(daily_atr, display = display.none, color = color.new(color.red, 100), title = "Daily ATR")
 // Plot pip size for the ATR
 plot(pip_changes_for_daily_atr, display = display.status_line, color = color.new(color.red, 100), title = "Daily ATR (pips)")
-// Plot Today moved ATR %
-plot(atr_moved_today_percentage, display = display.status_line, format = format.percent, color = color.new(color.red, 100), title = "Today moved ATR (%)")
 // Plot today moved ATR pip value
 plot(today_range_in_pip, display = display.status_line, color = color.new(color.red, 100), title = "Today moved ATR (pips)")
+// Plot Today moved ATR %
+plot(atr_moved_today_percentage, display = display.status_line, format = format.percent, color = color.new(color.red, 100), title = "Today moved ATR (%)")
 // Plot dayofweek
 plot(previous_day_of_week, display = display.status_line, color = color.new(color.red, 100), title = "Day of Week")
 // Plot square-root 24 ATR pips. This is chatgpt told me H1 timeframe trader use Daily ATR  / (square-root 24)
