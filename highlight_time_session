@@ -360,8 +360,13 @@ if array.size(queue_moved_pips_for_the_day) > queueSize
 // Create a table to show last 14 days ATR moved %
 // Positoin, col, row
 var moved_atr_pips_table = table.new(position.top_right, 2, 14)
-if barstate.islast
-    for i = 0 to array.size(queue_moved_pips_for_the_day) - 1
-        table.cell(moved_atr_pips_table, 0, i, str.tostring(array.get(queue_moved_pips_for_the_day, i)), text_color = color.new(color.white, 70))
-    for i = 0 to array.size(queue_moved_pips_for_the_day) - 1
-        table.cell(moved_atr_pips_table, 1, i, str.tostring(array.get(queue_week_of_day, i)), text_color = color.new(color.white, 70))
+// Let's not do this, it 误导 me expecting today will run xxx pips
+// if barstate.islast
+//     for i = 0 to array.size(queue_moved_pips_for_the_day) - 1
+//         table.cell(moved_atr_pips_table, 0, i, str.tostring(array.get(queue_moved_pips_for_the_day, i)), text_color = color.new(color.white, 70))
+//     // Yea im using `queue_moved_pips_for_the_day` aray size to print this `queue_week_of_day`
+//     // Gonna make sure all refer to same one source of array size to print the same thing
+//     for i = 0 to array.size(queue_moved_pips_for_the_day) - 1
+//         // For D1 timeframe, this array will be 0 hmm
+//         if array.size(queue_week_of_day) != 0
+//             table.cell(moved_atr_pips_table, 1, i, str.tostring(array.get(queue_week_of_day, i)), text_color = color.new(color.white, 70))
